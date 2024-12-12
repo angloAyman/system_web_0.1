@@ -282,8 +282,7 @@ import 'package:system/core/themes/theme/theme_data_light.dart';
 import 'package:system/core/themes/theme/theme_manager.dart';
 import 'package:system/features/auth/data/auth_service.dart';
 import 'package:system/features/billes/presentation/BillingPage.dart';
-import 'package:system/features/billes/presentation/report_page.dart';
-import 'package:system/main_screens/Admin/AddUserScreen.dart';
+import 'package:system/features/auth/presentation/screens/AddUserScreen.dart';
 import 'package:system/main_screens/Layouts/desktop_layout.dart';
 import 'package:system/main_screens/Layouts/mobile_layout.dart';
 import 'package:system/main_screens/Layouts/tablet_layout.dart';
@@ -368,26 +367,12 @@ class _MyAppState extends State<MyApp> {
       darkTheme: getThemeDataDark(),
       themeMode: themeManagermain.themeMode,
 
-      // ThemeData(
-      //   primarySwatch: Colors.blue,
-      // ),
 
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
 
       initialRoute: '/',
-      // الشاشة الرئيسية
-      // routes: {
-      //   '/': (context) => MyHomeScreen(),
-      //   // AppRoutes.login: (context) => LoginScreen(authService: authService),
-      //   AppRoutes.adminHome: (context) => AdminHomeScreen(),
-      //   AppRoutes.userHome: (context) => UserHomeScreen(),
-      //   AppRoutes.addUser: (context) => AddUserScreen(),
-      //   AppRoutes.report: (context) => ReportPage(),
-      //   AppRoutes.billing: (context) => BillingPage(),
-      //   // '/details': (context) => DetailsScreen(),
-      // },
       routes: routes,
     );
   }

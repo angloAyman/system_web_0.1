@@ -466,10 +466,13 @@ import 'package:system/features/billes/presentation/payment/PaymentPage.dart';
 import 'package:system/features/billes/presentation/BillingPage.dart';
 import 'package:system/features/billes/presentation/safe/report_page.dart';
 import 'package:system/features/category/presentation/screens/category_page.dart';
-import 'package:system/features/billes/presentation/report_page.dart';
 import 'package:system/features/customer/presentation/customerPage.dart';
+import 'package:system/features/report/UI/ItemsReportDashboard%20.dart';
+import 'package:system/features/report/UI/billsReportPage.dart';
+import 'package:system/features/report/UI/ReportsPage.dart';
 import 'package:system/main.dart';
-import 'package:system/main_screens/Admin/GetAllUsersScreen.dart';
+import 'package:system/features/auth/presentation/screens/GetAllUsersScreen.dart';
+import 'package:system/main_screens/Admin/mainScreen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   final String title = "Admin ROTOSH Page";
@@ -484,6 +487,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   final AuthService _authService = AuthService(Supabase.instance.client);
 
   String userName = "";
+  String userRole = "";
   Map<String, dynamic> userInfo = {}; // To store user info
 
   @override
@@ -510,6 +514,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
       setState(() {
         userName = response?['name'] ?? 'Unknown User';
+        userRole = response?['role'] ?? 'Unknown User';
         userInfo = response ?? {}; // Store all user information
       });
     } else {
@@ -550,6 +555,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         );
       },
     );
+  }
+
+  @override
+  void dispose() {
+    // Cancel any active listeners or operations
+    super.dispose();
   }
 
   @override
@@ -628,7 +639,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               ),
             ),
             items: [
-
+              //الفواتير
+              SideMenuItem(
+                title: 'الصفحة الرئيسية                ',
+                onTap: (index, _) {
+                  sideMenu.changePage(index);
+                },
+                icon: const Icon(Icons.home),
+              ),
               SideMenuExpansionItem(
                 title: "المبيعات",
                 icon: const Icon(Icons.add_business_sharp),
@@ -640,7 +658,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 onTap: (index, _) {
                   sideMenu.changePage(index);
                 },
-                icon: const Icon(Icons.home),
+                icon: const Icon(Icons.file_copy_outlined),
               ),
               ]),
               //الاصناف
@@ -652,6 +670,68 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 },
                 icon: const Icon(Icons.book),
               ),
+              SideMenuItem(
+                // trailing: Text("العملاء" , style: TextStyle(fontWeight: FontWeight.w400),textDirection: TextDirection.rtl,),
+                title: 'العملاء                ',
+                onTap: (index, _) {
+                  sideMenu.changePage(index);
+                },
+                icon: const Icon(Icons.supervised_user_circle_sharp),
+              ),
+
+
+              SideMenuExpansionItem(
+                title: "التقارير",
+                icon: const Icon(Icons.add_business_sharp),
+                children: [
+              //التقارير
+              SideMenuItem(
+                // trailing: Text("التقارير" , style: TextStyle(fontWeight: FontWeight.w400),textDirection: TextDirection.rtl,),
+                title: ' التقارير البرنامج                ',
+                onTap: (index, _) {
+                  sideMenu.changePage(index);
+                },
+                icon: const Icon(Icons.file_copy_outlined),
+              ),
+              SideMenuItem(
+                // trailing: Text("التقارير" , style: TextStyle(fontWeight: FontWeight.w400),textDirection: TextDirection.rtl,),
+                title: ' التقارير الفواتير                ',
+                onTap: (index, _) {
+                  sideMenu.changePage(index);
+                },
+                icon: const Icon(Icons.file_copy_outlined),
+              ),
+              SideMenuItem(
+                // trailing: Text("التقارير" , style: TextStyle(fontWeight: FontWeight.w400),textDirection: TextDirection.rtl,),
+                title: ' التقارير المنتجات                ',
+                onTap: (index, _) {
+                  sideMenu.changePage(index);
+                },
+                icon: const Icon(Icons.gif_box),
+              ),
+
+                ]),
+              SideMenuExpansionItem(
+                title: "المالية",
+                icon: const Icon(Icons.kitchen),
+                children: [
+                  SideMenuItem(
+                    title: 'القسم المالي                  ',
+                    onTap: (index, _) {
+                      sideMenu.changePage(index);
+                    },
+                    icon: const Icon(Icons.payment),
+                  ),
+
+                  SideMenuItem(
+                title: 'الخزنة                  ',
+                onTap: (index, _) {
+                  sideMenu.changePage(index);
+                },
+                icon: const Icon(Icons.paypal),
+              ),
+
+              ]),
               // المستخدمين
               SideMenuItem(
                 // trailing: Text("المستخدمين" , style: TextStyle(fontWeight: FontWeight.w400),textDirection: TextDirection.rtl,),
@@ -660,48 +740,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   sideMenu.changePage(index);
                 },
                 icon: const Icon(Icons.supervisor_account),
-              ),
-              //التقارير
-              SideMenuItem(
-                // trailing: Text("التقارير" , style: TextStyle(fontWeight: FontWeight.w400),textDirection: TextDirection.rtl,),
-                title: 'التقارير                ',
-                onTap: (index, _) {
-                  sideMenu.changePage(index);
-                },
-                icon: const Icon(Icons.file_copy_outlined),
-              ),
-
-              SideMenuExpansionItem(
-                title: "المالية",
-                icon: const Icon(Icons.kitchen),
-                children: [
-
-              SideMenuItem(
-                // trailing: Text("الخزنة" , style: TextStyle(fontWeight: FontWeight.w400),textDirection: TextDirection.rtl,),
-                title: 'الخزنة                  ',
-                onTap: (index, _) {
-                  sideMenu.changePage(index);
-                },
-                icon: const Icon(Icons.payment),
-              ),
-
-                  SideMenuItem(
-                // trailing: Text("الخزنة" , style: TextStyle(fontWeight: FontWeight.w400),textDirection: TextDirection.rtl,),
-                title: 'VaultsPage                  ',
-                onTap: (index, _) {
-                  sideMenu.changePage(index);
-                },
-                icon: const Icon(Icons.paypal),
-              ),
-
-              ]),
-              SideMenuItem(
-                // trailing: Text("العملاء" , style: TextStyle(fontWeight: FontWeight.w400),textDirection: TextDirection.rtl,),
-                title: 'العملاء                ',
-                onTap: (index, _) {
-                  sideMenu.changePage(index);
-                },
-                icon: const Icon(Icons.supervised_user_circle_sharp),
               ),
               SideMenuItem(
                 // trailing: Text("خروج" , style: TextStyle(fontWeight: FontWeight.w400),textDirection: TextDirection.rtl,),
@@ -721,6 +759,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             child: PageView(
               controller: pageController,
               children: [
+                // الرئيسية
+                Mainscreen(),
                 // الفواتير
                 BillingPage(),
                 // Container(
@@ -743,25 +783,31 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                //      ),
                //    ),
                //  ),
-
-                GetAllUsersScreen(),
-                //تقاير
-                // ReportPage(),
-                Container(
-                  color: Colors.white,
-                  child: const Center(
-                    child: Text(
-                      'ReportPage',
-                      style: TextStyle(fontSize: 35),
-                    ),
-                  ),
-                ),
-
-                // الخزنة
-                PaymentPage(),
-                VaultsPage(),
                 //العملاء
                 CustomerPage(),
+                //تقاير
+                // ReportPage(),
+                // Container(
+                //   color: Colors.white,
+                //   child: const Center(
+                //     child: Text(
+                //       'ReportPage',
+                //       style: TextStyle(fontSize: 35),
+                //     ),
+                //   ),
+                // ),
+                // app log
+                ReportsPage(),
+                billsReportPage(),
+                ItemsReportDashboard(),
+
+                // الماليات
+                PaymentPage(),
+
+                VaultsPage(userRole: userRole,),
+                GetAllUsersScreen(),
+
+
                 // Container(
                 //   color: Colors.white,
                 //   child: const Center(

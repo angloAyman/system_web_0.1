@@ -32,6 +32,21 @@ class SupabaseVaultRepository implements VaultRepository {
 
   }
 
+  // جلب جميع الفواتير المرتبطة بالخزنة
+  Future<List<Map<String, dynamic>>> getBillsForVault(String vaultId) async {
+    final response = await _client
+        .from('bills') // جدول الفواتير
+        .select('*')
+        .eq('vault_id', vaultId) // الفواتير المرتبطة بـ vault_id
+        .order('date', ascending: false); // ترتيب الفواتير حسب التاريخ
+
+    if (response == null) {
+      throw Exception('Failed to fetch bills for vault');
+    }
+
+    return List<Map<String, dynamic>>.from(response);
+  }
+
 
   @override
   Future<void> updateVault(Vault vault) async {

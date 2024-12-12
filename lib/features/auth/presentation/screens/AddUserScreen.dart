@@ -181,7 +181,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add User')),
+      appBar: AppBar(title: const Text('اضافة مستخدم')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -190,7 +190,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
             TextField(
               controller: nameController,
               decoration: const InputDecoration(
-                labelText: 'Name',
+                labelText: 'الاسم',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -198,7 +198,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
             TextField(
               controller: emailController,
               decoration: const InputDecoration(
-                labelText: 'Email',
+                labelText: 'الايميل',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -207,7 +207,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
               controller: passwordController,
               obscureText: true,
               decoration: const InputDecoration(
-                labelText: 'Password',
+                labelText: 'كلمة السر',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -215,7 +215,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
             DropdownButtonFormField<String>(
               value: selectedRole,
               decoration: const InputDecoration(
-                labelText: 'Role',
+                labelText: 'نوع المستخدم',
                 border: OutlineInputBorder(),
               ),
               items: roles
@@ -239,7 +239,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
                     ? const CircularProgressIndicator(
                   color: Colors.white,
                 )
-                    : const Text('Add User'),
+                    : const Text('اضافة مستخدم'),
               ),
             ),
           ],

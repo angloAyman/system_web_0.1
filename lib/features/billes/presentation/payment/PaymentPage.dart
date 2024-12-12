@@ -64,7 +64,13 @@ class _PaymentPageState extends State<PaymentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الخزنة'),
+        title: const Text('القسم المالي'
+            ''),
+        actions: [
+          TextButton.icon(onPressed: (){
+            Navigator.pushReplacementNamed(context, '/adminHome'); // توجيه المستخدم إلى صفحة تسجيل الدخول
+          }, label: Icon(Icons.home)),
+        ],
       ),
       body: Column(
         children: [
