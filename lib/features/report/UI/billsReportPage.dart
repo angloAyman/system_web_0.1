@@ -16,6 +16,7 @@ class billsReportPage extends StatefulWidget {
 }
 
 class _billsReportPageState extends State<billsReportPage> {
+
   final BillRepository _billRepository = BillRepository();
   late Future<List<Bill>> _billsFuture;
   List<Bill> _bills = [];
@@ -184,7 +185,7 @@ class _billsReportPageState extends State<billsReportPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('التقارير الفواتير'),
+        title: Text('انشاء تقرير'),
         actions: [
           TextButton.icon(onPressed: (){
             Navigator.pushReplacementNamed(context, '/adminHome'); // توجيه المستخدم إلى صفحة تسجيل الدخول
@@ -330,6 +331,10 @@ class _billsReportPageState extends State<billsReportPage> {
                   _showQuantity = value!;
                 });
               }),
+            ],
+          ),
+          Row(
+            children: [
               _buildCheckbox('الوصف', _showDescription, (value) {
                 setState(() {
                   _showDescription = value!;

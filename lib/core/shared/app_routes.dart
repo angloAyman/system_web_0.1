@@ -7,7 +7,8 @@ import 'package:system/features/billes/presentation/safe/report_page.dart';
 import 'package:system/features/category/presentation/screens/category_page.dart';
 import 'package:system/features/customer/presentation/customerPage.dart';
 import 'package:system/features/auth/presentation/screens/AddUserScreen.dart';
-import 'package:system/features/report/UI/ItemsReportCharts.dart';
+import 'package:system/features/report/UI/ItemsReportDashboard.dart';
+import 'package:system/features/report/UI/ReportCategoryOperationsPage.dart';
 import 'package:system/main_screens/Admin/AdminHomeScreen.dart';
 import 'package:system/main_screens/Admin/mainScreen.dart';
 import 'package:system/main_screens/Layouts/desktop_layout.dart';
@@ -30,9 +31,19 @@ final Map<String, WidgetBuilder> routes = {
   '/Category': (context) => CategoryPage(),
   '/customer': (context) => CustomerPage(),
   '/Payment': (context) => PaymentPage(),
-  '/ItemsReport': (context) => billsReportPage(),
-  // '/ItemsCharts': (context) => ItemsReportCharts(),
 
+  // '/ItemsReport': (context) => billsReportPage(),
+  // '/ItemsCharts': (context) => ReportCategoryOperationsPage(),
+  // '/CategoryReport': (context) => ReportCategoryOperationsPage(),
+
+  // انشاء تقرير
+  '/ItemsReport': (context) => billsReportPage(),
+
+  // المنتجات و الفواتير
+  '/ItemsCharts': (context) => ItemsReportDashboard(),
+
+  //تقارير عمليات الصنف
+  '/CategoryReport': (context) => ReportCategoryOperationsPage(),
 
   '/adduser': (context) => AddUserScreen(),
   // '/report': (context) => ReportPage(),

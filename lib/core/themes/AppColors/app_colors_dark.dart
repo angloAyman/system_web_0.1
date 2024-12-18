@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 class AppColorsDark {
   static const Color titleTextColor = Color(0xFFFFFFFF); // white
   static const Color AppbarColor = Color(0xFF9F9D9D); // white
+  // static const Color AppbarColor = Colors.black; // white
+
   static const Color BottomNavigationBarselectedItemColor = Colors.lightBlue;
 
 

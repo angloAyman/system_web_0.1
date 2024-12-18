@@ -9,126 +9,15 @@ import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/i
 import 'package:system/features/customer/data/model/business_customer_model.dart';
 import 'package:system/features/report/data/model/report_model.dart';
 
-// Future<void> showEditItemDialog({
-//   required BuildContext context,
-//   required BillItem item,
-//   required Function(BillItem updatedItem) onSave, // تمرير onSave كوسيلة
-// }) async {
-//   final TextEditingController amountController =
-//       TextEditingController(text: item.amount.toString());
-//   final TextEditingController quantityController =
-//       TextEditingController(text: item.quantity.toString());
-//   final TextEditingController priceController =
-//       TextEditingController(text: item.price_per_unit.toStringAsFixed(2));
-//   final TextEditingController categoryController =
-//       TextEditingController(text: item.categoryName);
-//   final TextEditingController subcategoryController =
-//       TextEditingController(text: item.subcategoryName);
-//   final TextEditingController descriptionController =
-//       TextEditingController(text: item.description);
-//
-//   showDialog(
-//     context: context,
-//     builder: (BuildContext context) {
-//       return AlertDialog(
-//         title: const Text('تعديل تفاصيل العنصر'),
-//         content: SingleChildScrollView(
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.start,
-//             children: [
-//               TextField(
-//                 controller: categoryController,
-//                 decoration: const InputDecoration(
-//                   labelText: 'الفئة',
-//                   border: OutlineInputBorder(),
-//                 ),
-//               ),
-//               const SizedBox(height: 8),
-//               TextField(
-//                 controller: subcategoryController,
-//                 decoration: const InputDecoration(
-//                   labelText: 'الفئة الفرعية',
-//                   border: OutlineInputBorder(),
-//                 ),
-//               ),
-//               const SizedBox(height: 8),
-//               TextField(
-//                 controller: amountController,
-//                 keyboardType: TextInputType.number,
-//                 decoration: const InputDecoration(
-//                   labelText: 'عدد الوحدات',
-//                   border: OutlineInputBorder(),
-//                 ),
-//               ),
-//               const SizedBox(height: 8),
-//               TextField(
-//                 controller: priceController,
-//                 keyboardType: TextInputType.number,
-//                 decoration: const InputDecoration(
-//                   labelText: 'السعر للوحدة',
-//                   border: OutlineInputBorder(),
-//                 ),
-//               ),
-//               const SizedBox(height: 8),
-//               TextField(
-//                 controller: quantityController,
-//                 keyboardType: TextInputType.number,
-//                 decoration: const InputDecoration(
-//                   labelText: 'العدد',
-//                   border: OutlineInputBorder(),
-//                 ),
-//               ),
-//               const SizedBox(height: 8),
-//               TextField(
-//                 controller: descriptionController,
-//                 decoration: const InputDecoration(
-//                   labelText: 'الوصف',
-//                   border: OutlineInputBorder(),
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//         actions: [
-//           TextButton(
-//             onPressed: () {
-//               Navigator.of(context).pop();
-//             },
-//             child: const Text('إلغاء'),
-//           ),
-//           ElevatedButton(
-//             onPressed: () {
-//               final updatedItem = BillItem(
-//                 categoryName: categoryController.text,
-//                 subcategoryName: subcategoryController.text,
-//                 amount: double.tryParse(amountController.text) ?? item.amount,
-//                 price_per_unit: double.tryParse(priceController.text) ??
-//                     item.price_per_unit,
-//                 description: descriptionController.text,
-//                 quantity:
-//                     double.tryParse(quantityController.text) ?? item.quantity,
-//                 id: 0,
-//               );
-//
-//               // عند الحفظ، نقوم بتشغيل onSave
-//               onSave(updatedItem);
-//               Navigator.of(context).pop();
-//             },
-//             child: const Text('حفظ'),
-//           ),
-//         ],
-//       );
-//     },
-//   );
-// }
-
 Future<void> showAddBillDialog({
   required BuildContext context,
   required Function(Bill, Payment, Report) onAddBill,
 }) async {
   final TextEditingController customerNameController = TextEditingController();
-  final TextEditingController dateController = TextEditingController();
   final TextEditingController paymentController = TextEditingController();
+
+  final TextEditingController dateController = TextEditingController();
+  DateTime? selectedDate; // To hold the selected date
 
   final List<BillItem> items = [];
   final BillRepository billRepository = BillRepository();
@@ -205,6 +94,38 @@ Future<void> showAddBillDialog({
     }
     ;
   }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      selectedDate = picked; // Save the selected date
+      dateController.text =
+      "${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}"; // Format as DD/MM/YYYY
+    }
+  }
+
+
+  DateTime? _parseDate(String input) {
+    try {
+      final parts = input.split('/');
+      if (parts.length == 3) {
+        final day = int.parse(parts[0]);
+        final month = int.parse(parts[1]);
+        final year = int.parse(parts[2]);
+        return DateTime(year, month, day);
+      }
+    } catch (e) {
+      // Optionally log the error
+    }
+    return null; // Return null if parsing fails
+  }
+
+
 
   return showDialog(
     context: context,
@@ -308,10 +229,13 @@ Future<void> showAddBillDialog({
                             ),
                           TextField(
                             controller: dateController,
+                            readOnly: true, // Prevent manual input
                             decoration: InputDecoration(
                               labelText: 'التاريخ (يوم/شهر/سنة)',
+                              suffixIcon: Icon(Icons.calendar_today), // Add a calendar icon
                             ),
-                          ),
+                            onTap: () => _selectDate(context), // Show the date picker on tap
+                          )
                         ],
                       ),
                     ),
@@ -372,10 +296,13 @@ Future<void> showAddBillDialog({
                             ),
                           TextField(
                             controller: dateController,
+                            readOnly: true, // Prevent manual input
                             decoration: InputDecoration(
                               labelText: 'التاريخ (يوم/شهر/سنة)',
+                              suffixIcon: Icon(Icons.calendar_today), // Add a calendar icon
                             ),
-                          ),
+                            onTap: () => _selectDate(context), // Show the date picker on tap
+                          )
                         ],
                       ),
                     ),
@@ -660,85 +587,143 @@ Future<void> showAddBillDialog({
                     onPressed: () => Navigator.of(context).pop(),
                     child: Text('الغاء'),
                   ),
+                  // TextButton(
+                  //   onPressed: customerExists
+                  //       ? () async {
+                  //           final user =
+                  //               Supabase.instance.client.auth.currentUser;
+                  //           if (user != null) {
+                  //             final parsedDate =
+                  //                 DateTime.tryParse(dateController.text);
+                  //
+                  //             // Handle null date case
+                  //             if (parsedDate == null) {
+                  //               ScaffoldMessenger.of(context).showSnackBar(
+                  //                 SnackBar(
+                  //                     content: Text(
+                  //                         'Invalid date format. Please use YYYY-MM-DD.')),
+                  //               );
+                  //               return; // Exit early if the date is invalid
+                  //             }
+                  //
+                  //             final bill = Bill(
+                  //               status: _selectedPaymentStatus,
+                  //               id: 0,
+                  //               userId: user.id,
+                  //               customerName: customerNameController.text,
+                  //               date: parsedDate,
+                  //               items: items,
+                  //               payment: double.parse(paymentController.text),
+                  //               total_price: _totalPrice,
+                  //               vault_id: selectedVaultId!,
+                  //             );
+                  //
+                  //             final payment = Payment(
+                  //               id: Supabase
+                  //                   .instance.client.auth.currentUser!.id,
+                  //               // id: 0,
+                  //               billId: bill.id,
+                  //               date: DateTime.now(),
+                  //               userId: user.id,
+                  //               payment: bill.payment,
+                  //               payment_status: 'إيداع',
+                  //               createdAt: DateTime.now(),
+                  //             );
+                  //
+                  //             final billreport = Report(
+                  //               id: Supabase
+                  //                   .instance.client.auth.currentUser!.id,
+                  //               title: "اضافة فاتورة",
+                  //               user_name: user.id,
+                  //               date: DateTime.now(),
+                  //               description:
+                  //                   'رقم الفاتورة: ($bill.id.toString()) - اسم العميل : ${bill.customerName} - اجمالي الفاتورة: ${bill.total_price.toStringAsFixed(2)}',
+                  //               operationNumber: 0,
+                  //             );
+                  //
+                  //             await onAddBill(bill, payment, billreport);
+                  //             final repository = BillRepository();
+                  //             Navigator.of(context).pop();
+                  //           } else {
+                  //             ScaffoldMessenger.of(context).showSnackBar(
+                  //               SnackBar(
+                  //                 content:
+                  //                     Text('Error: User not authenticated'),
+                  //               ),
+                  //             );
+                  //           }
+                  //         }
+                  //       : null, // Disable button if customer doesn't exist
+                  //   child: Text('اضف الفاتورة'),
+                  // ),
                   TextButton(
                     onPressed: customerExists
                         ? () async {
-                            final user =
-                                Supabase.instance.client.auth.currentUser;
-                            if (user != null) {
-                              final parsedDate = DateTime.tryParse(dateController.text);
+                      final user = Supabase.instance.client.auth.currentUser;
+                      if (user != null) {
+                        // Parse the date using custom parsing logic
+                        final parsedDate = dateController.text.isNotEmpty
+                            ? _parseDate(dateController.text)
+                            : null;
 
-                              // Handle null date case
-                              if (parsedDate == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Invalid date format. Please use YYYY-MM-DD.')),
-                                );
-                                return; // Exit early if the date is invalid
-                              }
+                        // Handle null date case
+                        if (parsedDate == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Invalid date format. Please use DD/MM/YYYY.'),
+                            ),
+                          );
+                          return; // Exit early if the date is invalid
+                        }
 
-                              final bill = Bill(
-                                status: _selectedPaymentStatus,
-                                id: 0,
-                                userId: user.id,
-                                customerName: customerNameController.text,
-                                date: parsedDate,
-                                items: items,
-                                payment: double.parse(paymentController.text),
-                                total_price: _totalPrice,
-                                vault_id: selectedVaultId!,
-                              );
+                        final bill = Bill(
+                          status: _selectedPaymentStatus,
+                          id: 0,
+                          userId: user.id,
+                          customerName: customerNameController.text,
+                          date: parsedDate, // Use parsed date
+                          items: items,
+                          payment: double.parse(paymentController.text),
+                          total_price: _totalPrice,
+                          vault_id: selectedVaultId!,
+                        );
 
-                              final payment = Payment(
-                                id: Supabase
-                                    .instance.client.auth.currentUser!.id,
-                                // id: 0,
-                                billId: bill.id,
-                                date: DateTime.now(),
-                                userId: user.id,
-                                payment: bill.payment,
-                                payment_status: 'إيداع',
-                                createdAt: DateTime.now(),
-                              );
+                        final payment = Payment(
+                          id: Supabase.instance.client.auth.currentUser!.id,
+                          billId: bill.id,
+                          date: DateTime.now(),
+                          userId: user.id,
+                          payment: bill.payment,
+                          payment_status: 'إيداع',
+                          createdAt: DateTime.now(),
+                        );
 
-                              final billreport = Report(
-                                id: Supabase
-                                    .instance.client.auth.currentUser!.id,
-                                title: "اضافة فاتورة",
-                                user_name: user.id,
-                                date: DateTime.now(),
-                                description:
-                                    'رقم الفاتورة: ($bill.id.toString()) - اسم العميل : ${bill.customerName} - اجمالي الفاتورة: ${bill.total_price.toStringAsFixed(2)}',
+                        final billreport = Report(
+                          id: Supabase.instance.client.auth.currentUser!.id,
+                          title: "اضافة فاتورة",
+                          user_name: user.id,
+                          date: DateTime.now(),
+                          description:
+                          'رقم الفاتورة: (${bill.id.toString()}) - اسم العميل : ${bill.customerName} - اجمالي الفاتورة: ${bill.total_price.toStringAsFixed(2)}',
+                          operationNumber: 0,
+                        );
 
-                                operationNumber: 0,
-                              );
-
-                              // final paymentreport = Report(
-                              //   id: Supabase
-                              //       .instance.client.auth.currentUser!.id,
-                              //   title: "ايداع فاتورة",
-                              //   user_name: user.id,
-                              //   // Ensure this matches the column name in the 'reports' table
-                              //   date: DateTime.now(),
-                              //   description:
-                              //       'رقم الفاتورة: ($bill.id.toString()) - رقم اليداع : ${payment.id} - اجمالي الفاتورة: ${bill.payment.toStringAsFixed(2)}',
-                              //   operationNumber: 0,
-                              // );
-
-                              await onAddBill(bill, payment, billreport);
-                              final repository = BillRepository();
-                              Navigator.of(context).pop();
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content:
-                                      Text('Error: User not authenticated'),
-                                ),
-                              );
-                            }
-                          }
+                        await onAddBill(bill, payment, billreport);
+                        final repository = BillRepository();
+                        Navigator.of(context).pop();
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error: User not authenticated'),
+                          ),
+                        );
+                      }
+                    }
                         : null, // Disable button if customer doesn't exist
                     child: Text('اضف الفاتورة'),
                   ),
+
+
                 ],
               ),
             ],

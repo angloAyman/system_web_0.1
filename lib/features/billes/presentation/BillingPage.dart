@@ -96,6 +96,25 @@ class _BillingPageState extends State<BillingPage> {
     });
   }
 
+
+  // Method to format the date to DD/MM/YYYY format
+  String _formatDate(dynamic date) {
+    if (date is DateTime) {
+      return '${date.day.toString().padLeft(2, '0')}/'
+          '${date.month.toString().padLeft(2, '0')}/'
+          '${date.year}';
+    } else if (date is String) {
+      // If the date is already a string in a known format (like 'YYYY-MM-DD'), you can parse it
+      final parsedDate = DateTime.tryParse(date);
+      if (parsedDate != null) {
+        return '${parsedDate.day.toString().padLeft(2, '0')}/'
+            '${parsedDate.month.toString().padLeft(2, '0')}/'
+            '${parsedDate.year}';
+      }
+    }
+    return 'غير محدد'; // Return a default value if the date is invalid
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,6 +137,7 @@ class _BillingPageState extends State<BillingPage> {
               ),
             ),
             child: BottomNavigationBar(
+              showUnselectedLabels: true,
               selectedFontSize: 15,
               currentIndex: _selectedStatus ==  AppStrings.pending
                   ? 0
@@ -163,6 +183,7 @@ class _BillingPageState extends State<BillingPage> {
           ),
                    Row(
             children: [
+              const SizedBox(width: 8.0), // Space between ToggleButtons and TextField
               // Search TextField
               Expanded(
                 child: TextField(
@@ -212,6 +233,7 @@ class _BillingPageState extends State<BillingPage> {
                 color: Colors.black,
               ),
               // Action Button for Starting Search
+              const SizedBox(width: 8.0), // Space between ToggleButtons and TextField
               ElevatedButton(
                 onPressed: () {
                   _filterBills(); // Trigger the search functionality
@@ -227,6 +249,8 @@ class _BillingPageState extends State<BillingPage> {
               const SizedBox(width: 8.0), // Space between ToggleButtons and Search Button
             ],
           ),
+
+
 
 
           Expanded(
@@ -247,7 +271,10 @@ class _BillingPageState extends State<BillingPage> {
                     final bill = _filteredBills[index];
                     return ListTile(
                       title: Text(
-                          '${bill.id} - ${bill.customerName} - ${bill.date}'),
+                          '${bill.id} -'
+                              ' ${bill.customerName} -'
+                              ' ${_formatDate(bill.date)}', // Format the date here
+                      ),
                       subtitle: Text(
                         'الحالة: ${bill.status}',
                         style: TextStyle(

@@ -25,19 +25,6 @@ class _ReportsPageState extends State<ReportsPage> {
     _searchController.addListener(_filterReports);
   }
 
-  // Future<void> _loadReports() async {
-  //   try {
-  //     final reports = await _reportRepository.getReports();
-  //     setState(() {
-  //       _allReports = reports;
-  //       _filteredReports = reports;
-  //     });
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('خطأ في تحميل التقارير: $e')),
-  //     );
-  //   }
-  // }
   Future<void> _loadReports() async {
     setState(() {
       _isLoading = true;
@@ -69,35 +56,6 @@ class _ReportsPageState extends State<ReportsPage> {
       return null;
     }
   }
-  // void _filterReports() {
-  //   final query = _searchController.text.toLowerCase();
-  //   setState(() {
-  //     _filteredReports = _allReports.where((report) {
-  //       return report.title.toLowerCase().contains(query) ||
-  //           report.user_name.toLowerCase().contains(query);
-  //     }).toList();
-  //   });
-  // }
-
-  // void _filterReports() {
-  //   final query = _searchController.text.toLowerCase();
-  //   setState(() {
-  //     if (_selectedSearchOption == 0) {
-  //       // Search by title
-  //       _filteredReports = _allReports.where((report) {
-  //         return report.title.toLowerCase().contains(query);
-  //       }).toList();
-  //     } else {
-  //       // Search by user_name
-  //       _filteredReports = _allReports.where((report) {
-  //         // Get user_id from user_name
-  //         final username =  _reportRepository.getUserIdByName(query) as String;
-  //         return username != null && report.user_name.toLowerCase() == username.toLowerCase();
-  //         // return report.user_name.toLowerCase().contains(query);
-  //       }).toList();
-  //     }
-  //   });
-  // }
   void _filterReports() async {
     final query = _searchController.text.toLowerCase();
     String? userId = await _getUserIdByName(query); // Get the user id by name

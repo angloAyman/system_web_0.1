@@ -12,7 +12,7 @@ ThemeData getThemeDataLight() =>
       appBarTheme: const AppBarTheme(
           centerTitle: true,
           titleTextStyle: TextStyle(
-              color: AppColorsLight.titleTextColor,
+              color: AppColorsLight.back,
               fontSize: 25,
               fontWeight: FontWeight.bold
           ),

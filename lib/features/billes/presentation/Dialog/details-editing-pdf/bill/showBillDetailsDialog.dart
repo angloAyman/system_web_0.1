@@ -73,6 +73,23 @@ class _BillDetailsDialogState extends State<BillDetailsDialog> {
   }
 
 
+  Future<List<Map<String, dynamic>>> _fetchPayments(int billId) async {
+    final response = await Supabase.instance.client
+        .from('payment')
+        .select('*, users(name)')
+        .eq('bill_id', billId)
+        .order('date', ascending: false)
+        ;
+
+    if (response == null) {
+      throw Exception('Failed to fetch payments: ${response}');
+    }
+
+    return List<Map<String, dynamic>>.from(response ?? []);
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -83,11 +100,77 @@ class _BillDetailsDialogState extends State<BillDetailsDialog> {
           children: [
             Text('رقم الفاتورة: ${_bill.id}'),
             Text('اسم العميل: ${_bill.customerName}'),
-            Text('التاريخ: ${_bill.date}'),
+            Text('التاريخ: ${_bill.date.year}/${_bill.date.month}/${_bill.date.day}'),
             Text('حالة الدفع: ${_bill.status}'),
             const SizedBox(height: 16),
             const Text('تفاصيل الدفع:', style: TextStyle(fontWeight: FontWeight.bold)),
-            Text('مبلغ الدفع: ${_bill.payment} - تاريخ الدفع : ${_bill.date}'),
+            // Fetch and display payments
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: _fetchPayments(_bill.id),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Text('خطأ في تحميل المدفوعات: ${snapshot.error}');
+                }
+                final payments = snapshot.data ?? [];
+                if (payments.isEmpty) {
+                  return const Text('لا توجد مدفوعات لهذه الفاتورة.');
+                }
+
+                // Calculate the total payment for the bill
+                final totalPayment = payments.fold<double>(
+                  0.0,
+                      (sum, payment) => sum + (payment['payment'] ?? 0),
+                );
+
+                // Method to format date to DD/MM/YYYY format
+                String _formatDate(dynamic date) {
+                  if (date is DateTime) {
+                    return '${date.day.toString().padLeft(2, '0')}/'
+                        '${date.month.toString().padLeft(2, '0')}/'
+                        '${date.year}';
+                  } else if (date is String) {
+                    // If the date is already a string in a known format (like 'YYYY-MM-DD'), you can parse it
+                    final parsedDate = DateTime.tryParse(date);
+                    if (parsedDate != null) {
+                      return '${parsedDate.day.toString().padLeft(2, '0')}/'
+                          '${parsedDate.month.toString().padLeft(2, '0')}/'
+                          '${parsedDate.year}';
+                    }
+                  }
+                  return 'غير محدد'; // Return a default value if the date is invalid
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: payments.map((payment) {
+                        final userName = payment['users']?['name'] ?? 'غير معروف'; // Fetch user_name
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Text(
+                            'المبلغ: ${payment['payment']} جنيه مصري-'
+                                ' التاريخ: ${_formatDate(payment['date'])} -'
+                                ' المستخدم: $userName',
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16), // Add spacing between the payment list and total
+                    Text(
+                      'إجمالي المدفوعات: ${totalPayment.toStringAsFixed(2)} جنيه مصري',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                );
+              },
+            ),
+
+            // Text('مبلغ الدفع: ${_bill.payment} - تاريخ الدفع : ${_bill.date}'),
             const SizedBox(height: 16),
             const Text('الأصناف:', style: TextStyle(fontWeight: FontWeight.bold)),
             SingleChildScrollView(

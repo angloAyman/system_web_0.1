@@ -54,6 +54,41 @@ class Bill {
       'vault_id': vault_id, // Include vault_id here
     };
   }
+
+  // Factory constructor to create a Bill from a Map
+  factory Bill.fromMap(Map<String, dynamic> map) {
+    var itemsFromJson = map['bill_items'] as List;
+    List<BillItem> itemsList = itemsFromJson.map((item) => BillItem.fromJson(item)).toList();
+
+    return Bill(
+      id: map['id'],
+      userId: map['user_id'],
+      status: map['status'],
+      customerName: map['customer_name'],
+      payment: (map['payment'] as num).toDouble(),
+      total_price: (map['total_price'] as num).toDouble(),
+      date:DateTime.parse(map['date']),
+      vault_id: map['vault_id'],
+      items: itemsList,
+    );
+  }
+
+  // Optional: Method to convert the object back to a map if needed
+  Map<String, dynamic> toMap() {
+    List<Map<String, dynamic>> itemsList = items.map((item) => item.toJson()).toList();
+
+    return {
+      'id': id,
+      'user_id': userId,
+      'customer_name': customerName,
+      'status': status,
+      'date': date,
+      'payment': payment,
+      'total_price': total_price,
+      'items': itemsList,
+      'vault_id': vault_id, // Include vault_id here
+    };
+  }
 }
 
 class BillItem {

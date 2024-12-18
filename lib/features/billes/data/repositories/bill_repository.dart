@@ -1001,7 +1001,7 @@ class BillRepository {
       final billResponse = await _client.from('bills').insert({
         'user_id': bill.userId,
         'customer_name': bill.customerName,
-        'date': bill.date,
+        'date': bill.date.toString() ,
         'status': bill.status,
         'payment': bill.payment.toInt(),
         'total_price': bill.total_price,
@@ -1190,16 +1190,6 @@ class BillRepository {
     }
   }
 
-  // Fetch categories for dropdowns
-  // Future<List<SubCategoryModel>> fetchCategories() async {
-  //   final response = await _client.from('category').select('*');
-  //   if (response == null) {
-  //     throw Exception('Error fetching categories');
-  //   }
-  //   return response.map<SubCategoryModel>((json) => SubCategoryModel.fromJson(json)).toList();
-  // }
-
-
   Future<int> getTotalBillsCount() async {
     final response = await _client.from('bills').select('*, bill_items(*)');
     return response.length;
@@ -1215,6 +1205,12 @@ class BillRepository {
   Future<int> getDeferredBillsCount() async {
     final response = await _client.from('bills').select('*, bill_items(*)').eq(
         'status', 'آجل');
+    return response.length;
+
+  }
+  Future<int> getOpenBillsCount() async {
+    final response = await _client.from('bills').select('*, bill_items(*)').eq(
+        'status', 'فاتورة مفتوحة');
     return response.length;
 
   }

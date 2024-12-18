@@ -983,9 +983,10 @@ class _CategoryPageState extends State<CategoryPage> {
       String name,
       String unit,
       double pricePerUnit,
+      double discountPercentage,
       ) async {
     try {
-      await _categoryRepository.addSubcategory(categoryId, name, unit, pricePerUnit);
+      await _categoryRepository.addSubcategory(categoryId, name, unit, pricePerUnit, discountPercentage);
       if (mounted) {
         setState(() {
           _subcategoriesFutures[categoryId] =
@@ -1023,6 +1024,7 @@ class _CategoryPageState extends State<CategoryPage> {
   void _showAddSubcategoryDialog(String categoryId) {
     final TextEditingController _subcategoryController = TextEditingController();
     final TextEditingController _unitSubcategoryController = TextEditingController();
+    final TextEditingController _discountPercentageSubcategoryController = TextEditingController();
     final TextEditingController _pricePerUnitSubcategoryController =
     TextEditingController();
 
@@ -1030,7 +1032,7 @@ class _CategoryPageState extends State<CategoryPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Add Subcategory'),
+          title: Text('اضافة صنف فرعي'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1048,6 +1050,11 @@ class _CategoryPageState extends State<CategoryPage> {
                   decoration: InputDecoration(labelText: 'سعر الوحدة الصنف الفرعي'),
                   keyboardType: TextInputType.number,
                 ),
+                TextField(
+                  controller: _discountPercentageSubcategoryController,
+                  decoration: InputDecoration(labelText: 'نسبة الخصم'),
+                  keyboardType: TextInputType.number,
+                ),
               ],
             ),
           ),
@@ -1063,9 +1070,18 @@ class _CategoryPageState extends State<CategoryPage> {
                 final priceText = _pricePerUnitSubcategoryController.text;
                 final price = double.tryParse(priceText);
 
+                final discountPercentageText = _discountPercentageSubcategoryController.text;
+                final discountPercentage = double.tryParse(discountPercentageText);
+
                 if (price == null || price <= 0) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('الرجاء إدخال سعر صالح.')),
+                  );
+                  return;
+                }
+                if (discountPercentage == null || discountPercentage <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('الرجاء إدخال الخصم بطريقة صحيحة.')),
                   );
                   return;
                 }
@@ -1074,7 +1090,8 @@ class _CategoryPageState extends State<CategoryPage> {
                   categoryId,
                   _subcategoryController.text.trim(),
                   _unitSubcategoryController.text.trim(),
-                  price,
+                    price,
+                  discountPercentage,
                 );
                 Navigator.of(context).pop();
               },
@@ -1147,7 +1164,7 @@ class _CategoryPageState extends State<CategoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Categories'),
+        title: Text('الصنف'),
         actions: [
 
             TextButton.icon(onPressed: (){
@@ -1168,7 +1185,7 @@ class _CategoryPageState extends State<CategoryPage> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No categories found.'));
+            return Center(child: Text('لا يوجد اصناف.'));
           }
 
           final categories = snapshot.data!;
@@ -1207,6 +1224,7 @@ class _CategoryPageState extends State<CategoryPage> {
                                 Text(subcat.name),
                                 Text(subcat.unit),
                                 Text(subcat.pricePerUnit.toString()),
+                                Text(subcat.discountPercentage.toString()),
                               ],
                             ),
                             trailing: IconButton(

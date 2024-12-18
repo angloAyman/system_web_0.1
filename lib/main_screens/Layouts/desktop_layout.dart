@@ -137,7 +137,7 @@ class _DesktopLayoutState extends State<DesktopLayout> {
                           ? const CircularProgressIndicator()
                           : ElevatedButton(
                         onPressed: _login,
-                        child: const Text('Login'),
+                        child: const Text('دخول'),
                       ),
                     ],
                   ),

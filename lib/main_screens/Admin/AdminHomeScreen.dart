@@ -467,7 +467,8 @@ import 'package:system/features/billes/presentation/BillingPage.dart';
 import 'package:system/features/billes/presentation/safe/report_page.dart';
 import 'package:system/features/category/presentation/screens/category_page.dart';
 import 'package:system/features/customer/presentation/customerPage.dart';
-import 'package:system/features/report/UI/ItemsReportDashboard%20.dart';
+import 'package:system/features/report/UI/ItemsReportDashboard.dart';
+import 'package:system/features/report/UI/ReportCategoryOperationsPage.dart';
 import 'package:system/features/report/UI/billsReportPage.dart';
 import 'package:system/features/report/UI/ReportsPage.dart';
 import 'package:system/main.dart';
@@ -695,7 +696,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               ),
               SideMenuItem(
                 // trailing: Text("التقارير" , style: TextStyle(fontWeight: FontWeight.w400),textDirection: TextDirection.rtl,),
-                title: ' التقارير الفواتير                ',
+                title: ' انشاء تقرير                ',
                 onTap: (index, _) {
                   sideMenu.changePage(index);
                 },
@@ -703,7 +704,15 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               ),
               SideMenuItem(
                 // trailing: Text("التقارير" , style: TextStyle(fontWeight: FontWeight.w400),textDirection: TextDirection.rtl,),
-                title: ' التقارير المنتجات                ',
+                title: '  المنتجات و الفواتير                ',
+                onTap: (index, _) {
+                  sideMenu.changePage(index);
+                },
+                icon: const Icon(Icons.gif_box),
+              ),
+              SideMenuItem(
+                // trailing: Text("التقارير" , style: TextStyle(fontWeight: FontWeight.w400),textDirection: TextDirection.rtl,),
+                title: ' تقارير عمليات الصنف                ',
                 onTap: (index, _) {
                   sideMenu.changePage(index);
                 },
@@ -800,7 +809,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 ReportsPage(),
                 billsReportPage(),
                 ItemsReportDashboard(),
-
+                ReportCategoryOperationsPage(),
                 // الماليات
                 PaymentPage(),
 

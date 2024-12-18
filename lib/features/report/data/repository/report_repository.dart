@@ -118,4 +118,36 @@ class ReportRepository {
   }
 
 
+
+  // Fetch category usage count by a given date range
+  Future<Map<String, int>> getCategoryUsageCountByDateRange(
+      String categoryId, DateTime startDate, DateTime endDate) async {
+    try {
+      final response = await _client
+          .from('bill_items')
+          .select('category_name, bills(date)')
+          .eq('category_name', categoryId)
+          .gte('bills.date', startDate.toIso8601String())
+          .lte('bills.date', endDate.toIso8601String());
+
+      if (response == null || response.isEmpty) {
+        throw Exception('No usage data found for this category in the specified range.');
+      }
+
+      // Group data by date and count usage
+      Map<String, int> usageCountByDate = {};
+
+      for (var item in response) {
+        final date = item['bills']['date'];
+        final dateString = date.substring(0, 10); // Format: YYYY-MM-DD
+
+        usageCountByDate[dateString] = (usageCountByDate[dateString] ?? 0) + 1;
+      }
+
+      return usageCountByDate;
+    } catch (e) {
+      throw Exception('Error fetching category usage count by date range: $e');
+    }
+  }
+
 }
