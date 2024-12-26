@@ -21,7 +21,9 @@ class AppColors {
   static const Color secondary = Color(0xFFF39447); // Orange
   static const Color textPrimary = Color(0xFF000000); // Black
   static const Color textSecondary = Color(0xFF757575); // Gray
+  // static const Color surface = Color(0xFF757575); // White
   static const Color surface = Color(0xFFFFFFFF); // White
   static const Color error = Color(0xFFB00020); // Red
+  static const Color baby = Color(0xFF2397F3); // Red
 
 }

@@ -26,6 +26,23 @@ class _BillDetailsDialogState extends State<BillDetailsDialog> {
     _bill = widget.bill;
   }
 
+  double calculateTotalPrice({
+    required double amount,
+    required double pricePerUnit,
+    required double quantity,
+    required double discount,
+  }) {
+    // Calculate the subtotal
+    double subtotal = amount * pricePerUnit * quantity;
+
+    // Calculate the discount amount
+    double discountAmount = subtotal * (discount / 100);
+
+    // Calculate the total price after applying the discount
+    double totalPrice = subtotal - discountAmount;
+
+    return totalPrice;
+  }
   // @override
   // void dispose() {
   //   // Cancel any active listeners or operations
@@ -176,13 +193,16 @@ class _BillDetailsDialogState extends State<BillDetailsDialog> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: DataTable(
+                headingTextStyle: TextStyle(color: Colors.cyan),
                 columns: const [
                   DataColumn(label: Text('الفئة/الفرعية')), // Category Name/description
                   DataColumn(label: Text('وصف')), // description
                   DataColumn(label: Text('سعر الوحدة')), // price_per_unit
                   DataColumn(label: Text('عدد الوحدات')), // quantity
                   DataColumn(label: Text('سعر القطعة')), // price_per_unit * amount
-                  DataColumn(label: Text('الكمية')), // Quantity
+                  DataColumn(label: Text('الكمية')),   // Quantity
+                  DataColumn(label: Text(' قيمة الخصم')),   // Quantity
+
                   DataColumn(label: Text('السعر')), // Price per Unit
                 ],
                 rows: _bill.items.map((item) {
@@ -194,17 +214,45 @@ class _BillDetailsDialogState extends State<BillDetailsDialog> {
                       DataCell(Text(item.amount.toString())),
                       DataCell(Text('\جنيه${(item.amount * item.price_per_unit)}')),
                       DataCell(Text(item.quantity.toString())),
-                      DataCell(Text('\جنيه${(item.amount * item.price_per_unit * item.quantity)}')),
+                      DataCell(Text(item.discount.toString())),
+                      DataCell(
+                          // Text('\جنيه${(item.amount * item.price_per_unit * item.quantity)}')
+                         Text(
+                          calculateTotalPrice(
+                            amount: item.amount,
+                            pricePerUnit: item.price_per_unit,
+                            quantity: item.quantity,
+                            discount: item.discount,
+                          ) .toString(),
+                          style: TextStyle(fontSize: 16.0),
+                        ),
+
+                      ),
                     ],
                   );
                 }).toList(),
               ),
             ),
             const Divider(),
+
             Text(
-              'الإجمالي:  ${_bill.items.fold(0.0, (sum, item) => sum + (item.amount * item.price_per_unit * item.quantity)).toStringAsFixed(2)} جنيه مصري فقط لاغير ',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              'الإجمالي:   ${
+                  _bill.items.fold(0.0, (sum, item) {
+                    return sum + calculateTotalPrice(
+                      amount: item.amount,
+                      pricePerUnit: item.price_per_unit,
+                      quantity: item.quantity,
+                      discount: item.discount,
+                    );
+                  })
+              } جنيه مصري فقط لا غير   ',
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
+
+            // Text(
+            //   'الإجمالي:  ${_bill.items.fold(0.0, (sum, item) => sum + (item.amount * item.price_per_unit * item.quantity)).toStringAsFixed(2)} جنيه مصري فقط لاغير ',
+            //   style: const TextStyle(fontWeight: FontWeight.bold),
+            // ),
           ],
         ),
       ),

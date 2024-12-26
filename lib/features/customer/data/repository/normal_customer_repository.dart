@@ -19,6 +19,7 @@ class NormalCustomerRepository {
       'name': normal_customers.name,
       'email': normal_customers.email,
       'phone': normal_customers.phone,
+      'phonecall': normal_customers.phonecall,
       'address': normal_customers.address,
     });
   }

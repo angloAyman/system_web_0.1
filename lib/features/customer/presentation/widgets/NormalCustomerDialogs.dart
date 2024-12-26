@@ -7,32 +7,42 @@ class NormalCustomerDialogs {
     required BuildContext context,
     required bool isBusiness,
     normal_customers? normalCustomer,
-    required Function(String name, String email, String phone, String address) onSubmit,
+    required Function(String name, String email, String phone, String address , String phonecall) onSubmit,
   }) {
     final _nameController = TextEditingController(text: normalCustomer?.name ?? '');
     final _emailController = TextEditingController(text: normalCustomer?.email ?? '');
     final _phoneController = TextEditingController(text: normalCustomer?.phone ?? '');
+    final _phonecallController = TextEditingController(text: normalCustomer?.phonecall ?? '');
     final _addressController = TextEditingController(text: normalCustomer?.address ?? '');
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(isBusiness ? 'Add or Update Business Customer' : 'Add or Update Normal Customer'),
+          title: Text(isBusiness ? 'اضافة او تحديث عميل تجاري' : 'اضافة او تحديث عميل عادي'),
           content: SingleChildScrollView(
             child: Column(
               children: [
                 TextField(
                   controller: _nameController,
-                  decoration: InputDecoration(labelText: 'اسم العميل'),
+                  decoration: InputDecoration(labelText: 'اسم العميل'
+                    , suffixText: "اجباري",
+
+                  ),
                 ),
                 TextField(
                   controller: _emailController,
                   decoration: InputDecoration(labelText: 'الايميل'),
                 ),
                 TextField(
+                  controller: _phonecallController,
+                  decoration: InputDecoration(labelText: 'رقم الهاتف'
+                    , suffixText: "اجباري",
+                  ),
+                ),
+                TextField(
                   controller: _phoneController,
-                  decoration: InputDecoration(labelText: 'رقم الهاتف'),
+                  decoration: InputDecoration(labelText: ' رقم الهاتف الوتس'),
                 ),
                 TextField(
                   controller: _addressController,
@@ -54,14 +64,15 @@ class NormalCustomerDialogs {
                 final name = _nameController.text;
                 final email = _emailController.text;
                 final phone = _phoneController.text;
+                final phonecall = _phonecallController.text;
                 final address = _addressController.text;
 
-                if (name.isNotEmpty && email.isNotEmpty && phone.isNotEmpty && address.isNotEmpty) {
-                  onSubmit(name, email, phone, address);
+                if (name.isNotEmpty && phonecall.isNotEmpty ) {
+                  onSubmit(name, email, phone, address,phonecall);
                   Navigator.pop(context);
                 } else {
                   // Show error if fields are empty
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('All fields are required')));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('برجاء ادخال الاسم و رقم الهاتف')));
                 }
               },
               child: Text('حفظ'),
@@ -81,21 +92,21 @@ class NormalCustomerDialogs {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Delete Customer'),
-          content: Text('Are you sure you want to delete this customer? This action cannot be undone.'),
+          title: Text('حذف العميل'),
+          content: Text('هل أنت متأكد أنك تريد حذف هذا العميل؟ لا يمكن التراجع عن هذا الإجراء.'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context); // Close the dialog
               },
-              child: Text('Cancel'),
+              child: Text('الغاء'),
             ),
             TextButton(
               onPressed: () {
                 onConfirm();
                 Navigator.pop(context); // Close the dialog
               },
-              child: Text('Delete'),
+              child: Text('مسح'),
             ),
           ],
         );

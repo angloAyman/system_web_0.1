@@ -14,6 +14,7 @@ Future<void> showAddBusinessCustomerDialog(
   final _personPhoneController = TextEditingController();
   final _addressController = TextEditingController();
   final _discountController = TextEditingController();
+  final _personPhonecallController = TextEditingController();
 
   showDialog(
     context: context,
@@ -61,6 +62,12 @@ Future<void> showAddBusinessCustomerDialog(
                 decoration: InputDecoration(labelText: 'نسبة الخصم (%)'),
                 keyboardType: TextInputType.number,
               ),
+              SizedBox(height: 8),
+              TextField(
+                controller: _personPhonecallController,
+                decoration: InputDecoration(labelText: 'نسبة الخصم (%)'),
+                keyboardType: TextInputType.number,
+              ),
             ],
           ),
         ),
@@ -81,6 +88,7 @@ Future<void> showAddBusinessCustomerDialog(
                 _personPhoneController.text,
                 _addressController.text,
                 _discountController.text,
+                _personPhonecallController.text,
                 billRepository,
               );
               await onAdd();
@@ -103,6 +111,7 @@ void _addBusinessCustomer(
     String personPhone,
     String address,
     String discount,
+    String personphonecall,
     BillRepository billRepository,
     ) async {
   final newCustomer = business_customers(
@@ -114,6 +123,7 @@ void _addBusinessCustomer(
     personPhone: personPhone,
     address: address,
     discount: discount,
+    personphonecall: personphonecall,
   );
   await billRepository.addBusinessCustomer(newCustomer);
 }

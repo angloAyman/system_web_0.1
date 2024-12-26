@@ -3,6 +3,7 @@ class normal_customers {
   final String name;
   final String email;
   final String phone;
+  final String phonecall;
   final String address;
 
   normal_customers({
@@ -10,6 +11,7 @@ class normal_customers {
     required this.name,
     required this.email,
     required this.phone,
+    required this.phonecall,
     required this.address,
   });
 
@@ -20,6 +22,7 @@ class normal_customers {
       name: json['name'] as String,
       email: json['email'] as String,
       phone: json['phone'] as String,
+      phonecall: json['phonecall'] as String,
       address: json['address'] as String,
     );
   }
@@ -31,6 +34,7 @@ class normal_customers {
       'name': name,
       'email': email,
       'phone': phone,
+      'phonecall': phonecall,
       'address': address,
     };
   }
@@ -42,6 +46,7 @@ class normal_customers {
       name: data['name'],
       email: data['email'],
       phone: data['phone'],
+      phonecall: data['phonecall'],
       address: data['address'],
     );
   }
@@ -53,6 +58,7 @@ class normal_customers {
       'name': name,
       'email': email,
       'phone': phone,
+      'phonecall': phonecall,
       'address': address,
     };
   }

@@ -21,6 +21,7 @@ class BusinessCustomerRepository {
       'email': business_customers.email,
       'phone': business_customers.phone,
       'personPhone': business_customers.personPhone,
+      'personphonecall': business_customers.personphonecall,
       'address': business_customers.address,
       'discount': business_customers.discount,
     });

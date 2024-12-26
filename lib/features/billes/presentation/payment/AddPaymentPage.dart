@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AddPaymentDialog extends StatefulWidget {
@@ -82,6 +83,8 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
 
       // تحديث حالة الفاتورة
       await _updateBillStatus();
+      // تحديث إجمالي المدفوعات في الفاتورة
+      await _updateBillTotalPayment(amount);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تم إضافة الدفع بنجاح!')),
@@ -100,6 +103,7 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
   }
 
   Future<void> _updateBillStatus() async {
+
     try {
       // Fetch all payments for the current bill
       final payments = await _fetchPayments(widget.billId);
@@ -120,11 +124,18 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
         status = 'آجل';
       }
 
+
+
       // Update the bill status in the database
       await Supabase.instance.client
           .from('bills')
           .update({'status': status})
           .eq('id', widget.billId);
+
+      // await Supabase.instance.client
+      //     .from('bills')
+      //     .update({'totalPayment': totalPayment, 'status': status})
+      //     .eq('id', widget.billId);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('تم تحديث حالة الفاتورة إلى: $status')),
@@ -132,6 +143,44 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('فشل في تحديث حالة الفاتورة: $error')),
+      );
+    }
+  }
+
+  Future<void> _updateBillTotalPayment(double newPaymentAmount) async {
+    try {
+      // Fetch the current total payment for the bill
+      final response = await Supabase.instance.client
+          .from('bills')
+          .select('payment')
+          .eq('id', widget.billId)
+          .single();
+
+      if (response == null) {
+        throw Exception('Bill not found.');
+      }
+
+      final currentTotalPayment = response['payment'] ?? 0.0;
+
+      // Calculate the updated total payment
+      final updatedTotalPayment = currentTotalPayment + newPaymentAmount;
+
+      // Update the bill's total payment
+      final updateResponse = await Supabase.instance.client
+          .from('bills')
+          .update({'payment': updatedTotalPayment})
+          .eq('id', widget.billId);
+
+      // if (updateResponse == null || updateResponse.isEmpty) {
+      //   throw Exception('Failed to update bill total payment.');
+      // }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم تحديث إجمالي المدفوعات بنجاح!')),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('فشل في تحديث إجمالي المدفوعات: $error')),
       );
     }
   }
@@ -208,7 +257,7 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             Text(
-              'تاريخ الفاتورة: ${widget.billDate}',
+              'تاريخ الفاتورة: ${ widget.billDate.year} / ${ widget.billDate.month} / ${widget.billDate.day}',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 16),
@@ -261,11 +310,15 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ...payments.map((payment) {
+                            final dateString = payment['date'];
+                            final dateTime = DateTime.parse(dateString);
+                            final formattedDate = DateFormat('dd/MM/yyyy').format(dateTime);
+
                             final userName = payment['users']?['name'] ?? 'غير معروف';
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 4.0),
                               child: Text(
-                                'المبلغ: ${payment['payment']} - التاريخ: ${payment['date']} - المستخدم: $userName',
+                                'المبلغ: ${payment['payment']} - التاريخ:  $formattedDate - المستخدم: $userName',
                               ),
                             );
                           }).toList(),

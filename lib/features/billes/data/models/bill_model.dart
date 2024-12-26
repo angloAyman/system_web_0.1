@@ -9,6 +9,10 @@ class Bill {
   late final double total_price;
   final String vault_id; // New field
   final List<BillItem> items;
+  bool isFavorite;
+  String description; // "تم الدفع" أو "آجل"
+
+
 
   Bill({
     required this.id,
@@ -20,6 +24,9 @@ class Bill {
     required this.total_price,
     required this.items,
     required this.vault_id, // Initialize here
+    this.isFavorite = false, // Default to false
+    this.description = "جاري التنفيذ", // Default to false
+
   });
 
   factory Bill.fromJson(Map<String, dynamic> json) {
@@ -36,6 +43,9 @@ class Bill {
       date:DateTime.parse(json['date']),
       items: itemsList,
       vault_id: json['vault_id'],
+      isFavorite: json['isFavorite'] ?? false,
+      description: json['description'] ?? "جاري التنفيذ",
+
     );
   }
 
@@ -52,6 +62,7 @@ class Bill {
       'total_price': total_price,
       'items': itemsList,
       'vault_id': vault_id, // Include vault_id here
+      'description': description, // Include vault_id here
     };
   }
 
@@ -69,6 +80,7 @@ class Bill {
       total_price: (map['total_price'] as num).toDouble(),
       date:DateTime.parse(map['date']),
       vault_id: map['vault_id'],
+      description: map['description'],
       items: itemsList,
     );
   }
@@ -97,6 +109,7 @@ class BillItem {
   final String subcategoryName;
   late final double amount;
   late final double price_per_unit;
+  late final double discount;
   late final double quantity;
   late final String description; // The new field for description
 
@@ -106,6 +119,7 @@ class BillItem {
     required this.subcategoryName,
     required this.amount,
     required this.price_per_unit,
+    required this.discount,
     required this.quantity,
     required this.description,
   });
@@ -118,8 +132,9 @@ class BillItem {
       subcategoryName: json['subcategory_name'],
       amount: (json['amount'] as num).toDouble(),
       price_per_unit: (json['price_per_unit'] as num).toDouble(),
+      discount: (json['discount'] as num).toDouble(),
       quantity: (json['quantity'] as num).toDouble(),
-      description: json['description'] ?? '', // Set description default to empty string if null
+      description: json['description'] ?? '',
     );
   }
 
@@ -131,6 +146,7 @@ class BillItem {
       'subcategory_name': subcategoryName,
       'amount': amount,
       'price_per_unit': price_per_unit,
+      'discount': discount,
       'quantity': quantity,
       'description': description, // Add description
     };

@@ -852,6 +852,7 @@ Future<Bill?> showEditBillDialog(BuildContext context, Bill bill) async {
                           price_per_unit: 0.0,
                           quantity: 0.0,
                           description: '',
+                          discount: 0.0,
                         ), // Create a new BillItem instance
                         onUpdateItem: (newItem) {
                           setState(() {

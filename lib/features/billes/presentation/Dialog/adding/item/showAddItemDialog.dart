@@ -51,11 +51,6 @@ Future<void> showAddItemDialog({
             double quantity = double.tryParse(quantityController.text)?? 0;
             totalPrice = amount * quantity * selectedSubcategory!.pricePerUnit;
 
-            // // Apply discount if checkbox is enabled
-            // if (applyDiscount && discountController.text.isNotEmpty) {
-            //   discount = double.tryParse(discountController.text) ?? 0;
-            //   totalPrice -= discount;
-            // }
           }
 
           double calculateTotalPrice() {
@@ -281,6 +276,7 @@ Future<void> showAddItemDialog({
                     price_per_unit: selectedSubcategory!.pricePerUnit,
                     description: descriptionController.text,
                     quantity: quantity,
+                    discount: discount,
                   );
                   onAddItem(item);
                   Navigator.of(context).pop();

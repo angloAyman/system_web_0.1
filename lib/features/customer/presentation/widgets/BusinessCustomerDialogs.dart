@@ -7,31 +7,50 @@ class BusinessCustomerDialogs {
     required BuildContext context,
     required bool isBusiness,
     business_customers? businessCustomer,
-    required Function(String name, String personName, String email, String phone, String personPhone, String address, String discount) onSubmit,
+    required Function(String name, String personName, String email,
+            String phone, String personPhone, String address, String discount, String personphonecall)
+        onSubmit,
   }) {
-    final _nameController = TextEditingController(text: businessCustomer?.name ?? '');
-    final _personNameController = TextEditingController(text: businessCustomer?.personName ?? '');
-    final _emailController = TextEditingController(text: businessCustomer?.email ?? '');
-    final _phoneController = TextEditingController(text: businessCustomer?.phone ?? '');
-    final _personPhoneController = TextEditingController(text: businessCustomer?.personPhone ?? '');
-    final _addressController = TextEditingController(text: businessCustomer?.address ?? '');
-    final _discountController = TextEditingController(text: businessCustomer?.discount ?? '');
+    final _nameController =
+        TextEditingController(text: businessCustomer?.name ?? '');
+    final _personNameController =
+        TextEditingController(text: businessCustomer?.personName ?? '');
+    final _emailController =
+        TextEditingController(text: businessCustomer?.email ?? '');
+    final _phoneController =
+        TextEditingController(text: businessCustomer?.phone ?? '');
+    final _personPhoneController =
+        TextEditingController(text: businessCustomer?.personPhone ?? '');
+    final _personphonecallController =
+        TextEditingController(text: businessCustomer?.personphonecall ?? '');
+    final _addressController =
+        TextEditingController(text: businessCustomer?.address ?? '');
+    final _discountController =
+        TextEditingController(text: businessCustomer?.discount ?? '');
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(isBusiness ? 'Add or Update Business Customer' : 'Add or Update Normal Customer'),
+          title: Text(isBusiness
+              ? 'اضافة او تحديث عميل تجاري'
+              : 'اضافة او تحديث عميل عادي'),
           content: SingleChildScrollView(
             child: Column(
               children: [
                 TextField(
                   controller: _nameController,
-                  decoration: InputDecoration(labelText: 'اسم الشركة'),
+                  decoration: InputDecoration(
+                      labelText: 'اسم الشركة'
+                      , suffixText: "اجباري"
+                  ),
+
                 ),
                 TextField(
                   controller: _personNameController,
-                  decoration: InputDecoration(labelText: 'اسم الشخص المسؤول'),
+                  decoration: InputDecoration(labelText: 'اسم الشخص المسؤول'
+                      , suffixText: "اجباري"
+                  ),
                 ),
                 TextField(
                   controller: _emailController,
@@ -39,21 +58,32 @@ class BusinessCustomerDialogs {
                 ),
                 TextField(
                   controller: _phoneController,
-                  decoration: InputDecoration(labelText: 'رقم الهاتف للشركة'),
+                  decoration: InputDecoration(labelText: 'رقم الهاتف للشركة'
+                      , suffixText: "اجباري"
+                  ),
                 ),
                 TextField(
                   controller: _personPhoneController,
-                  decoration: InputDecoration(labelText: 'رقم الهاتف الشخص المسوؤل'),
+                  decoration:
+                      InputDecoration(labelText: 'رقم الهاتف الوتس الشخص المسوؤل'),
+                ),
+                TextField(
+                  controller: _personphonecallController,
+                  decoration:
+                      InputDecoration(labelText: 'رقم الهاتف الشخص المسوؤل'
+                          , suffixText: "اجباري",
+                      ),
+
                 ),
                 TextField(
                   controller: _addressController,
                   decoration: InputDecoration(labelText: 'العنوان'),
                 ),
-                TextField(
-                  controller: _discountController,
-                  decoration: InputDecoration(labelText: 'نسبة الخصم (%)'),
-                  keyboardType: TextInputType.number,
-                ),
+                // TextField(
+                //   controller: _discountController,
+                //   decoration: InputDecoration(labelText: 'نسبة الخصم (%)'),
+                //   keyboardType: TextInputType.number,
+                // ),
               ],
             ),
           ),
@@ -74,13 +104,20 @@ class BusinessCustomerDialogs {
                 final personPhone = _personPhoneController.text;
                 final address = _addressController.text;
                 final discount = _discountController.text;
+                final personphonecall = _personphonecallController.text;
 
-                if (name.isNotEmpty && email.isNotEmpty && phone.isNotEmpty && address.isNotEmpty) {
-                  onSubmit(name, personName, email, phone, personPhone, address, discount);
+                if (name.isNotEmpty &&
+                    personName.isNotEmpty &&
+                    phone.isNotEmpty &&
+                    // address.isNotEmpty &&
+                    personphonecall.isNotEmpty) {
+                  onSubmit(name, personName, email, phone, personPhone, address,
+                      discount,personphonecall);
                   Navigator.pop(context);
                 } else {
                   // Show error if fields are empty
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('جميع الحقول مطلوبة')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('اسم الشركة و اسم الشخص المسوؤل و رقم الهاتف الشخص المسوؤل و رقم الهاتف الوتس الشخص المسوؤل الحقول مطلوبة')));
                 }
               },
               child: Text('حفظ'),
@@ -100,21 +137,22 @@ class BusinessCustomerDialogs {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Delete Business Customer'),
-          content: Text('Are you sure you want to delete this customer? This action cannot be undone.'),
+          title: Text(' حذف عميل تجاري '),
+          content: Text(
+              'هل أنت متأكد أنك تريد حذف هذا العميل؟ لا يمكن التراجع عن هذا الإجراء'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context); // Close the dialog
               },
-              child: Text('Cancel'),
+              child: Text('الغاء'),
             ),
             TextButton(
               onPressed: () {
                 onConfirm();
                 Navigator.pop(context); // Close the dialog
               },
-              child: Text('Delete'),
+              child: Text('حذف'),
             ),
           ],
         );

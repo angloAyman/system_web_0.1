@@ -16,7 +16,9 @@ ThemeData getThemeDataLight() =>
               fontSize: 25,
               fontWeight: FontWeight.bold
           ),
-          color: AppColorsLight.AppbarColor),
+          color: AppColorsLight.AppbarColor
+
+      ),
 
       bottomNavigationBarTheme:
        BottomNavigationBarThemeData(
@@ -29,7 +31,7 @@ ThemeData getThemeDataLight() =>
 
        ),
 
-
+// dialogTheme: ,
 
        // primaryTextTheme: ,
       brightness: Brightness.light,

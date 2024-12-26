@@ -32,6 +32,9 @@ class SupabaseVaultRepository implements VaultRepository {
 
   }
 
+
+
+
   // جلب جميع الفواتير المرتبطة بالخزنة
   Future<List<Map<String, dynamic>>> getBillsForVault(String vaultId) async {
     final response = await _client
@@ -104,5 +107,34 @@ class SupabaseVaultRepository implements VaultRepository {
     }
 
     print('Vault deleted successfully');
+  }
+
+  // Update the balance of the vault based on total payments from bills
+  Future<void> updateVaultBalance(String vaultId) async {
+    try {
+      // Get the list of bills for the vault
+      final bills = await getBillsForVault(vaultId);
+
+      // Calculate total payment
+      final totalPayment = bills.fold(0.0, (sum, bill) {
+        return sum + (bill['payment'] ?? 0.0);
+      });
+
+      // Update the vault's balance in the database
+      final response = await _client
+          .from('vaults')
+          .update({'balance': totalPayment})
+          .eq('id', vaultId)
+          .select();
+
+      if (response == null) {
+        throw Exception('Failed to update balance');
+      }
+
+      print('Vault balance updated successfully');
+    } catch (e) {
+      print('Error updating vault balance: $e');
+      throw Exception('Error updating vault balance: $e');
+    }
   }
 }

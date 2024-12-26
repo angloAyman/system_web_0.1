@@ -1,190 +1,10 @@
-// import 'package:flutter/material.dart';
-// import 'package:system/features/billes/data/models/bill_model.dart';
-// import 'package:system/features/billes/data/repositories/bill_repository.dart';
-// import 'package:system/features/billes/presentation/BillingPage.dart';
-// import 'package:system/features/billes/presentation/Dialog/adding/bill/showAddBillDialog.dart';
-//
-// class Mainscreen extends StatefulWidget {
-//   const Mainscreen({super.key});
-//
-//   @override
-//   State<Mainscreen> createState() => _MainscreenState();
-// }
-//
-//
-//
-//
-// class _MainscreenState extends State<Mainscreen> {
-//   final BillRepository _billRepository = BillRepository();
-//
-//   void addBill(Bill bill, payment, report) async {
-//     try {
-//       // await _billRepository.addBill(bill);
-//       await _billRepository.addBill(bill, payment, report);
-//     } catch (e) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text('Error adding bill: $e')),
-//       );
-//     }
-//   }
-//
-//   // Function to show the report selection dialog
-//   void _showReportSelectionDialog(BuildContext context) {
-//     showDialog(
-//       context: context,
-//       builder: (BuildContext context) {
-//         return AlertDialog(
-//           title: Text("اختار نوع التقرير "),
-//           content: Column(
-//             mainAxisSize: MainAxisSize.min,
-//             children: [
-//               // انشاء تقرير
-//               // '//ItemsReport': (context) => billsReportPage(),
-//               ListTile(
-//                 title: Text(" انشاء تقرير"),
-//                 onTap: () {
-//                   Navigator.pushReplacementNamed(context, '/ItemsReport'); // Example route for Category Report
-//                   Navigator.of(context).pop();  // Close the dialog
-//                 },
-//               ),
-//
-//               // المنتجات و الفواتير
-//               // '//ItemsCharts': (context) => ItemsReportDashboard(),
-//               ListTile(
-//                 title: Text("المنتجات و الفواتير"),
-//                 onTap: () {
-//                   Navigator.pushReplacementNamed(context, '/ItemsCharts'); // Example route for Payment Report
-//                   Navigator.of(context).pop();  // Close the dialog
-//                 },
-//               ),
-//
-//               //تقارير عمليات الصنف
-//               // '/CategoryReport': (context) => ReportCategoryOperationsPage(),
-//               ListTile(
-//                 title: Text("تقارير عمليات الصنف"),
-//                 onTap: () {
-//                   Navigator.pushReplacementNamed(context, '/CategoryReport'); // Example route for Payment Report
-//                   Navigator.of(context).pop();  // Close the dialog
-//                 },
-//               ),
-//               // Add more report types here as needed
-//             ],
-//           ),
-//         );
-//       },
-//     );
-//   }
-//
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: SafeArea(
-//         child: Column(
-//           children: [
-//             SizedBox(height: 50),
-//             // Logo section
-//             Center(
-//               child: Image.asset(
-//                 "assets/logo/logo-3.png",
-//                 width: 300,
-//                 height: 300,
-//               ),
-//             ),
-//             SizedBox(height: 50), // Space between logo and buttons
-//
-//             // Buttons row section
-//             Expanded(
-//               child: SingleChildScrollView(
-//                 child: Wrap(
-//                   alignment: WrapAlignment.center,
-//                   spacing: 20,
-//                   runSpacing: 20,
-//                   children: [
-//                     _buildButton(
-//                       text: "اضافة فاتورة",
-//                       icon: Icons.file_copy_outlined,
-//                       onPressed: () {
-//                        showAddBillDialog(
-//                           context: context,
-//                           onAddBill: addBill,
-//                         ).then((_) {
-//                          Navigator.pushReplacementNamed(context, '/billing'); // توجيه المستخدم إلى صفحة تسجيل الدخول
-//                        });
-//
-//
-//                       },
-//                     ),
-//                     _buildButton(
-//                       text: "اضافة صنف",
-//                       icon: Icons.book,
-//                       onPressed: () {
-//                         Navigator.pushReplacementNamed(context, '/Category'); // توجيه المستخدم إلى صفحة تسجيل الدخول
-//
-//                       },
-//                     ),
-//                     _buildButton(
-//                       text: "اضافة عميل",
-//                       icon: Icons.supervised_user_circle_sharp,
-//                       onPressed: () {
-//                         Navigator.pushReplacementNamed(context, '/customer'); // توجيه المستخدم إلى صفحة تسجيل الدخول
-//
-//                       },
-//                     ),
-//                     _buildButton(
-//                       text: "ايداع مبلع",
-//                       icon: Icons.payment,
-//                       onPressed: () {
-//                         Navigator.pushReplacementNamed(context, '/Payment'); // توجيه المستخدم إلى صفحة تسجيل الدخول
-//
-//                       },
-//                     ),
-//                     _buildButton(
-//                       text: "سحب مبلع",
-//                       icon: Icons.payment,
-//                       onPressed: () {
-//                         Navigator.pushReplacementNamed(context, '/Payment'); // توجيه المستخدم إلى صفحة تسجيل الدخول
-//
-//                       },
-//                     ),
-//                     _buildButton(
-//                       text: "طباعة تقرير",
-//                       icon: Icons.add_business_sharp,
-//                       onPressed: () {
-//                         _showReportSelectionDialog(context); // Show the report selection dialog
-//                         // Navigator.pushReplacementNamed(context, '/ItemsReport'); // توجيه المستخدم إلى صفحة تسجيل الدخول
-//                       },
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-//
-//   Widget _buildButton({
-//     required String text,
-//     required IconData icon,
-//     required VoidCallback onPressed,
-//   }) {
-//     return TextButton.icon(
-//       onPressed: onPressed,
-//       icon: Icon(icon),
-//       label: Text(
-//         text,
-//         textDirection: TextDirection.rtl, // Right-to-left text
-//       ),
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
+import 'package:system/core/themes/AppColors/them_constants.dart';
+import 'package:system/features/billes/FavoriteBillsPage.dart';
 import 'package:system/features/billes/data/models/bill_model.dart';
 import 'package:system/features/billes/data/repositories/bill_repository.dart';
 import 'package:system/features/billes/presentation/Dialog/adding/bill/showAddBillDialog.dart';
+import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/bill/showBillDetailsDialog.dart';
 
 class Mainscreen extends StatefulWidget {
   const Mainscreen({super.key});
@@ -195,6 +15,15 @@ class Mainscreen extends StatefulWidget {
 
 class _MainscreenState extends State<Mainscreen> {
   final BillRepository _billRepository = BillRepository();
+  late Future<List<Bill>> _favoriteBillsFuture;
+  late Future<List<Bill>> _NotfavoriteBillsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _favoriteBillsFuture = _billRepository.getFavoriteBills(); // Fetch favorite bills
+    _NotfavoriteBillsFuture = _billRepository.getNotFavoriteBills(); // Fetch not favorite bills
+  }
 
   // Function to add a bill
   void addBill(Bill bill, payment, report) async {
@@ -222,6 +51,7 @@ class _MainscreenState extends State<Mainscreen> {
             children: [
               ListTile(
                 title: const Text("إنشاء تقرير"),
+
                 onTap: () {
                   Navigator.pushReplacementNamed(context, '/ItemsReport');
                   // Navigator.of(context).pop();
@@ -254,80 +84,291 @@ class _MainscreenState extends State<Mainscreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 50),
-            // Logo section
-            Center(
-              child: Image.asset(
-                "assets/logo/logo-3.png",
-                width: 300,
-                height: 300,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Text(
-                    'Logo Not Found',
-                    style: TextStyle(fontSize: 18, color: Colors.red),
+            SizedBox(height: 20,),
+            Expanded(
+              child: Center(
+                 child: SingleChildScrollView(
+                   child: Wrap(
+                     alignment: WrapAlignment.center,
+                     spacing: 20,
+                     runSpacing: 20,
+                     children: [
+                       // _buildButton(
+                       //   text: "الفواتير المفضلة",
+                       //   icon: Icons.account_balance,
+                       //   onPressed: (){
+                       //     MaterialPageRoute(
+                       //       builder: (context) => FavoriteBillsPage(), // Pass the list of bills
+                       //     );
+                       //   },
+                       // ),
+                       _buildButton(
+                         text: "إضافة فاتورة",
+                         icon: Icons.file_copy_outlined,
+                         onPressed: () {
+                           showAddBillDialog(
+                             context: context,
+                             onAddBill: addBill,
+                           ).then((_) {
+                             Navigator.pushReplacementNamed(context, '/billing');
+                           });
+                         },
+                       ),
+                       _buildButton(
+                         text: "إضافة صنف",
+                         icon: Icons.book,
+                         onPressed: () {
+                           Navigator.pushReplacementNamed(context, '/Category');
+                         },
+                       ),
+                       _buildButton(
+                         text: "إضافة عميل",
+                         icon: Icons.supervised_user_circle_sharp,
+                         onPressed: () {
+                           Navigator.pushReplacementNamed(context, '/customer');
+                         },
+                       ),
+                       _buildButton(
+                         text: "إيداع مبلغ",
+                         icon: Icons.payment,
+                         onPressed: () {
+                           Navigator.pushReplacementNamed(context, '/Payment');
+                         },
+                       ),
+                       _buildButton(
+                         text: "سحب مبلغ",
+                         icon: Icons.payment,
+                         onPressed: () {
+                           Navigator.pushReplacementNamed(context, '/Payment');
+                         },
+                       ),
+                       _buildButton(
+                         text: "طباعة تقرير",
+                         icon: Icons.add_business_sharp,
+                         onPressed: () {
+                           _showReportSelectionDialog(context);
+                         },
+                       ),
+                     ],
+                   ),
+                 ),
+              ),
+            ),
+            Text("الجدول التنفيذي",style: TextStyle(fontSize: 20),),
+
+            Expanded(
+              child: FutureBuilder<List<Bill>>(
+                future: _favoriteBillsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Text('خطأ: ${snapshot.error}'),
+                    );
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(
+                      child: Text('لا توجد فواتير مفضلة.'),
+                    );
+                  }
+
+                  final favoriteBills = snapshot.data!;
+
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: DataTable(
+                      columns: const [
+                        DataColumn(label: Text('رقم الفاتورة')),
+                        DataColumn(label: Text('اسم العميل')),
+                        DataColumn(label: Text('الحالة')),
+                        DataColumn(label: Text('تفاصيل')),
+                        DataColumn(label: Text('الإجراءات')), // Action column
+                      ],
+                      rows: favoriteBills.map((bill) {
+                        return DataRow(cells: [
+                          DataCell(Text('${bill.id}')),
+                          DataCell(Text(bill.customerName)),
+                          DataCell(Text(bill.status)),
+                          DataCell(Text(bill.description)),
+                          DataCell(
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.visibility),
+                                  color: Colors.blue,
+                                  onPressed: () {
+                                    // Action for "View"
+                                    showBillDetailsDialog(context, bill ,);
+                                  },
+                                ),
+
+                                IconButton(
+                                  icon: Icon(
+                                    bill.isFavorite
+                                        ? Icons.account_balance
+                                        : Icons.account_balance_outlined,
+                                    color: bill.isFavorite ? AppColors.primary : null,
+                                  ),
+                                  onPressed: () async {
+                                    try {
+                                      // Call the method to remove from favorites
+                                      _billRepository.removeFromFavorites(bill);
+                                      _favoriteBillsFuture;
+                                      _NotfavoriteBillsFuture;
+                                      // Update the UI
+                                      setState(()  {
+                                        bill.isFavorite = false;
+                                        _favoriteBillsFuture = _billRepository.getFavoriteBills(); // Fetch favorite bills
+                                        _NotfavoriteBillsFuture = _billRepository.getNotFavoriteBills();
+                                      });
+
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                            content:
+                                            Text('تمت إزالة الفاتورة من المفضلة')),
+                                      );
+
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                            content: Text('حدث خطأ: ${e.toString()}')),
+                                      );
+                                    }
+                                  },
+                                ),
+
+
+                                // IconButton(
+                                //   icon: const Icon(Icons.edit),
+                                //   color: Colors.orange,
+                                //   onPressed: () async {
+                                //     try {
+                                //       // Remove from favorites
+                                //       await _billRepository.removeFromFavorites(bill);
+                                //       ScaffoldMessenger.of(context).showSnackBar(
+                                //         SnackBar(content: Text('تمت إزالة الفاتورة من المفضلة')),
+                                //       );
+                                //
+                                //       setState(() {
+                                //         // Refresh the list after removal
+                                //         _favoriteBillsFuture = _billRepository.getFavoriteBills();
+                                //       });
+                                //     } catch (e) {
+                                //       ScaffoldMessenger.of(context).showSnackBar(
+                                //         SnackBar(content: Text('خطأ: ${e.toString()}')),
+                                //       );
+                                //     }
+                                //   },
+                                // ),
+
+                                // IconButton(
+                                //   icon: const Icon(Icons.delete),
+                                //   color: Colors.red,
+                                //   onPressed: () {
+                                //     // Action for "Delete"
+                                //     _deleteBill(bill.id);
+                                //   },
+                                // ),
+                              ],
+                            ),
+                          ),
+                        ]);
+                      }).toList(),
+                    ),
                   );
                 },
               ),
             ),
-            const SizedBox(height: 50), // Space between logo and buttons
 
-            // Buttons section
+            Text("الجدول الفواتير التامة",style: TextStyle(fontSize: 20),),
+
             Expanded(
-              child: SingleChildScrollView(
-                child: Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 20,
-                  runSpacing: 20,
-                  children: [
-                    _buildButton(
-                      text: "إضافة فاتورة",
-                      icon: Icons.file_copy_outlined,
-                      onPressed: () {
-                        showAddBillDialog(
-                          context: context,
-                          onAddBill: addBill,
-                        ).then((_) {
-                          Navigator.pushReplacementNamed(context, '/billing');
-                        });
-                      },
+              child: FutureBuilder<List<Bill>>(
+                future: _NotfavoriteBillsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Text('خطأ: ${snapshot.error}'),
+                    );
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(
+                      child: Text('لا توجد فواتير مفضلة.'),
+                    );
+                  }
+
+                  final favoriteBills = snapshot.data!;
+
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: DataTable(
+                      columns: const [
+                        DataColumn(label: Text('رقم الفاتورة')),
+                        DataColumn(label: Text('اسم العميل')),
+                        DataColumn(label: Text('الحالة')),
+                        DataColumn(label: Text('تفاصيل')),
+                        DataColumn(label: Text('الإجراءات')), // Action column
+                      ],
+                      rows: favoriteBills.map((bill) {
+                        return DataRow(cells: [
+                          DataCell(Text('${bill.id}')),
+                          DataCell(Text(bill.customerName)),
+                          DataCell(Text(bill.status)),
+                          DataCell(Text(bill.description)),
+                          DataCell(
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.visibility),
+                                  color: Colors.blue,
+                                  onPressed: () {
+                                    // Action for "View"
+                                    showBillDetailsDialog(context, bill ,);
+                                  },
+                                ),
+
+
+
+                                // IconButton(
+                                //   icon: const Icon(Icons.edit),
+                                //   color: Colors.orange,
+                                //   onPressed: () async {
+                                //     try {
+                                //       // Remove from favorites
+                                //       await _billRepository.removeFromFavorites(bill);
+                                //       ScaffoldMessenger.of(context).showSnackBar(
+                                //         SnackBar(content: Text('تمت إزالة الفاتورة من المفضلة')),
+                                //       );
+                                //
+                                //       setState(() {
+                                //         // Refresh the list after removal
+                                //         _favoriteBillsFuture = _billRepository.getFavoriteBills();
+                                //       });
+                                //     } catch (e) {
+                                //       ScaffoldMessenger.of(context).showSnackBar(
+                                //         SnackBar(content: Text('خطأ: ${e.toString()}')),
+                                //       );
+                                //     }
+                                //   },
+                                // ),
+
+                                // IconButton(
+                                //   icon: const Icon(Icons.delete),
+                                //   color: Colors.red,
+                                //   onPressed: () {
+                                //     // Action for "Delete"
+                                //     _deleteBill(bill.id);
+                                //   },
+                                // ),
+                              ],
+                            ),
+                          ),
+                        ]);
+                      }).toList(),
                     ),
-                    _buildButton(
-                      text: "إضافة صنف",
-                      icon: Icons.book,
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/Category');
-                      },
-                    ),
-                    _buildButton(
-                      text: "إضافة عميل",
-                      icon: Icons.supervised_user_circle_sharp,
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/customer');
-                      },
-                    ),
-                    _buildButton(
-                      text: "إيداع مبلغ",
-                      icon: Icons.payment,
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/Payment');
-                      },
-                    ),
-                    _buildButton(
-                      text: "سحب مبلغ",
-                      icon: Icons.payment,
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/Payment');
-                      },
-                    ),
-                    _buildButton(
-                      text: "طباعة تقرير",
-                      icon: Icons.add_business_sharp,
-                      onPressed: () {
-                        _showReportSelectionDialog(context);
-                      },
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ],
@@ -341,17 +382,67 @@ class _MainscreenState extends State<Mainscreen> {
     required IconData icon,
     required VoidCallback onPressed,
   }) {
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon),
-      label: Text(
-        text,
-        textDirection: TextDirection.rtl, // Right-to-left text
-      ),
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        textStyle: const TextStyle(fontSize: 16),
-      ),
-    );
+    return
+      InkWell(
+        onTap: onPressed,
+        highlightColor: AppColors.back,
+        // Add highlight effect on tap
+        splashColor: AppColors.baby,
+        // Splash effect color
+        child: Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 45,
+                  color: AppColors.background2,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  text,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
   }
-}
+    //          Widget _buildButton({
+  //   required String text,
+  //   required IconData icon,
+  //   required VoidCallback onPressed,
+  // }) {
+  //   return
+  //     GestureDetector(
+  //       onTap: onPressed,
+  //       child: Card(
+  //          child: Padding(
+  //         padding: const EdgeInsets.all(16.0),
+  //        child: Column(
+  //          mainAxisSize: MainAxisSize.min,
+  //          children: [
+  //            Icon(icon, size: 40 , color: AppColors.background2,),
+  //            const SizedBox(height: 8),
+  //            Text(
+  //              text,
+  //              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,),
+  //            ),
+  //          ],
+
+       //   )),
+       //   ),
+       // );
+
+  }
+// }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:system/core/constants/app_constants.dart';
+import 'package:system/core/themes/AppColors/them_constants.dart';
+import 'package:system/features/billes/FavoriteBillsPage.dart';
 import 'package:system/features/billes/data/models/bill_model.dart';
 import 'package:system/features/billes/data/repositories/bill_repository.dart';
 import 'package:system/features/billes/presentation/Dialog/adding/bill/showAddBillDialog.dart';
@@ -66,7 +68,8 @@ class _BillingPageState extends State<BillingPage> {
             ? bill.id.toString().contains(query)
             : bill.customerName.toLowerCase().contains(query);
 
-        final matchesStatus = _selectedStatus == null || bill.status == _selectedStatus;
+        final matchesStatus =
+            _selectedStatus == null || bill.status == _selectedStatus;
 
         return matchesQuery && matchesStatus;
       }).toList();
@@ -78,7 +81,7 @@ class _BillingPageState extends State<BillingPage> {
     setState(() {
       switch (index) {
         case 0:
-          _selectedStatus =  AppStrings.pending; // آجل
+          _selectedStatus = AppStrings.pending; // آجل
           break;
         case 1:
           _selectedStatus = AppStrings.paid; // تم الدفع
@@ -96,6 +99,74 @@ class _BillingPageState extends State<BillingPage> {
     });
   }
 
+// Dialog to update the bill description
+  Future<String?> _showDescriptionDialog(
+      BuildContext context, int billId, String currentDescription) {
+    TextEditingController _descriptionController =
+        TextEditingController(text: currentDescription);
+
+    return showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('تحديث تفاصيل الفاتورة'),
+          content: TextField(
+            controller: _descriptionController,
+            decoration: const InputDecoration(hintText: 'أدخل تفاصيل الفاتورة'),
+            maxLines: null,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(_descriptionController
+                    .text); // Return the updated description
+                // Navigator.of(context).pop();
+              },
+              child: const Text('حفظ'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog without saving
+              },
+              child: const Text('إلغاء'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _toggleFavoriteStatusAndUpdateDescription(Bill bill) async {
+    final updatedDescription =
+        await _showDescriptionDialog(context, bill.id, bill.description);
+
+    if (updatedDescription != null) {
+      try {
+        await _billRepository.updateFavoriteStatusAndDescription(
+          billId: bill.id,
+          isFavorite: !bill.isFavorite, // Toggle the favorite status
+          description: updatedDescription, // Set the updated description
+        );
+
+        // Update the UI
+        setState(() {
+          bill.isFavorite = !bill.isFavorite;
+          bill.description = updatedDescription;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'تمت ${bill.isFavorite ? "إضافة" : "إزالة"} الفاتورة للمفضلة')),
+        );
+      } catch (e) {
+        print(e);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('حدث خطأ أثناء تحديث الفاتورة: $e')),
+        );
+      }
+    }
+  }
 
   // Method to format the date to DD/MM/YYYY format
   String _formatDate(dynamic date) {
@@ -121,9 +192,25 @@ class _BillingPageState extends State<BillingPage> {
       appBar: AppBar(
         title: Text('الفواتير'),
         actions: [
-          TextButton.icon(onPressed: (){
-            Navigator.pushReplacementNamed(context, '/adminHome'); // توجيه المستخدم إلى صفحة تسجيل الدخول
-          }, label: Icon(Icons.home)),
+          TextButton.icon(
+              onPressed: () {
+                Navigator.pushReplacementNamed(context,
+                    '/adminHome'); // توجيه المستخدم إلى صفحة تسجيل الدخول
+              },
+              label: Icon(Icons.home)),
+          IconButton(
+            icon: Icon(Icons.account_balance),
+            onPressed: () async {
+              // final favoriteBill = _bills.firstWhere((bill) => bill.isFavorite);
+              // await _addToFavorites(favoriteBill);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FavoriteBillsPage(),
+                ),
+              );
+            },
+          ),
         ],
       ),
       body: Column(
@@ -139,13 +226,13 @@ class _BillingPageState extends State<BillingPage> {
             child: BottomNavigationBar(
               showUnselectedLabels: true,
               selectedFontSize: 15,
-              currentIndex: _selectedStatus ==  AppStrings.pending
+              currentIndex: _selectedStatus == AppStrings.pending
                   ? 0
                   : _selectedStatus == AppStrings.paid
-                  ? 1
-                  : _selectedStatus == AppStrings.openInvoice
-                  ? 2
-                  : 3,
+                      ? 1
+                      : _selectedStatus == AppStrings.openInvoice
+                          ? 2
+                          : 3,
               // ? 3
 
               onTap: _onNavBarItemTapped,
@@ -181,9 +268,10 @@ class _BillingPageState extends State<BillingPage> {
               ],
             ),
           ),
-                   Row(
+          Row(
             children: [
-              const SizedBox(width: 8.0), // Space between ToggleButtons and TextField
+              const SizedBox(width: 8.0),
+              // Space between ToggleButtons and TextField
               // Search TextField
               Expanded(
                 child: TextField(
@@ -191,7 +279,8 @@ class _BillingPageState extends State<BillingPage> {
                   decoration: InputDecoration(
                     hintText: _searchCriteria == 'id'
                         ? 'بحث برقم الفاتورة'
-                        : 'بحث باسم العميل', // Update placeholder dynamically
+                        : 'بحث باسم العميل',
+                    // Update placeholder dynamically
                     prefixIcon: const Icon(Icons.search, color: Colors.black),
                     filled: true,
                     fillColor: Colors.white,
@@ -203,7 +292,8 @@ class _BillingPageState extends State<BillingPage> {
                   style: const TextStyle(color: Colors.black),
                 ),
               ),
-              const SizedBox(width: 8.0), // Space between ToggleButtons and TextField
+              const SizedBox(width: 8.0),
+              // Space between ToggleButtons and TextField
               // ToggleButtons for search criteria
               ToggleButtons(
                 isSelected: [
@@ -233,7 +323,8 @@ class _BillingPageState extends State<BillingPage> {
                 color: Colors.black,
               ),
               // Action Button for Starting Search
-              const SizedBox(width: 8.0), // Space between ToggleButtons and TextField
+              const SizedBox(width: 8.0),
+              // Space between ToggleButtons and TextField
               ElevatedButton(
                 onPressed: () {
                   _filterBills(); // Trigger the search functionality
@@ -242,17 +333,16 @@ class _BillingPageState extends State<BillingPage> {
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                  ), backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0), // Button background color
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 12.0), // Button background color
                 ),
               ),
-              const SizedBox(width: 8.0), // Space between ToggleButtons and Search Button
+              const SizedBox(width: 8.0),
+              // Space between ToggleButtons and Search Button
             ],
           ),
-
-
-
-
           Expanded(
             child: FutureBuilder<List<Bill>>(
               future: _billsFuture,
@@ -271,9 +361,9 @@ class _BillingPageState extends State<BillingPage> {
                     final bill = _filteredBills[index];
                     return ListTile(
                       title: Text(
-                          '${bill.id} -'
-                              ' ${bill.customerName} -'
-                              ' ${_formatDate(bill.date)}', // Format the date here
+                        '${bill.id} -'
+                        ' ${bill.customerName} -'
+                        ' ${_formatDate(bill.date)}', // Format the date here
                       ),
                       subtitle: Text(
                         'الحالة: ${bill.status}',
@@ -283,8 +373,55 @@ class _BillingPageState extends State<BillingPage> {
                               : Colors.orange,
                         ),
                       ),
+                      // trailing:
+                      //  IconButton(
+                      //    icon: Icon(
+                      //      bill.isFavorite ? Icons.account_balance : Icons.account_balance_outlined,
+                      //      color: bill.isFavorite ? AppColors.primary : null,
+                      //    ),
+                      //    onPressed: () => _toggleFavoriteStatusAndUpdateDescription(bill),
+                      //  ),
+                      trailing: IconButton(
+                        icon: Icon(
+                          bill.isFavorite
+                              ? Icons.account_balance
+                              : Icons.account_balance_outlined,
+                          color: bill.isFavorite ? AppColors.primary : null,
+                        ),
+                        onPressed: () async {
+                          try {
+                            if (bill.isFavorite) {
+                              // Call the method to remove from favorites
+                              _billRepository.removeFromFavorites(bill);
+
+                              // Update the UI
+                              setState(() {
+                                bill.isFavorite = false;
+                              });
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content:
+                                        Text('تمت إزالة الفاتورة من المفضلة')),
+                              );
+                            } else {
+                              // Call the method to add to favorites and update description
+                              _toggleFavoriteStatusAndUpdateDescription(bill);
+                            }
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text('حدث خطأ: ${e.toString()}')),
+                            );
+                          }
+                        },
+                      ),
+
                       onTap: () {
-                        showBillDetailsDialog(context, bill ,);
+                        showBillDetailsDialog(
+                          context,
+                          bill,
+                        );
                       },
                     );
                   },
@@ -303,7 +440,6 @@ class _BillingPageState extends State<BillingPage> {
         },
         child: Icon(Icons.add),
         tooltip: 'إضافة فاتورة جديدة',
-
       ),
     );
   }

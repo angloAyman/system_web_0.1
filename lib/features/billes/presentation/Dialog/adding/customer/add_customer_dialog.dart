@@ -9,6 +9,7 @@ Future<void> showAddNormalcustomerDialog(BuildContext context,
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _phonecallController = TextEditingController();
   final _addressController = TextEditingController();
 
   showDialog(
@@ -26,6 +27,9 @@ Future<void> showAddNormalcustomerDialog(BuildContext context,
                 decoration: InputDecoration(labelText: 'الاميل')),
             TextField(
                 controller: _phoneController,
+                decoration: InputDecoration(labelText: ' رقم الهاتف الوتس')),
+            TextField(
+                controller: _phonecallController,
                 decoration: InputDecoration(labelText: 'رقم الهاتف')),
             TextField(
                 controller: _addressController,
@@ -47,6 +51,7 @@ Future<void> showAddNormalcustomerDialog(BuildContext context,
                 _phoneController.text,
                 _addressController.text,
                 billRepository,
+                _phonecallController.text,
               );
               await onAdd();
 
@@ -61,13 +66,14 @@ Future<void> showAddNormalcustomerDialog(BuildContext context,
 }
 
 void _addCustomer(String name, String email, String phone, String address,
-    BillRepository billRepository) async {
+    BillRepository billRepository, String phonecall) async {
   final newCustomer = normal_customers(
       id: '',
       name: name,
       email: email,
       phone: phone,
-      address: address
+      address: address,
+      phonecall: phonecall
   );
   await billRepository.addCustomer(newCustomer);
 }
