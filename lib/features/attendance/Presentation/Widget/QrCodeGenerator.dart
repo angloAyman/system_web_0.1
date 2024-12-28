@@ -22,3 +22,34 @@ class QrCodeGenerator extends StatelessWidget {
     );
   }
 }
+
+// import 'package:flutter/material.dart';
+// import 'package:qr_flutter/qr_flutter.dart';
+//
+// class QRGeneratorPage extends StatelessWidget {
+//   final String baseUrl = 'https://mianifmvhtxtqxxhhwpr.supabase.co/confirm-attendance';
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final String attendanceId = 'unique-attendance-id'; // Replace with your logic
+//     final String qrData = '$baseUrl?id=$attendanceId';
+//
+//     return Scaffold(
+//       appBar: AppBar(title: Text('Generate QR Code')),
+//       body: Center(
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             Text('Scan this QR Code:', style: TextStyle(fontSize: 18)),
+//             SizedBox(height: 20),
+//             QrImageView(
+//               data: qrData,
+//               size: 100,
+//               backgroundColor: Colors.white,
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }

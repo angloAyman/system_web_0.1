@@ -662,8 +662,9 @@ class _AttendancePageState extends State<AttendancePage> {
                   ),
                   SizedBox(height: 20),
                   Divider(),
-                  SizedBox(height: 20),
+                  // SizedBox(height: 20),
                   QrCodeGenerator(),
+                  // QRGeneratorPage(),
                 ],
               ),
             ),
@@ -730,7 +731,10 @@ class _AttendancePageState extends State<AttendancePage> {
   void _startQRScanner(BuildContext context) async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => QRScanner()),
+      MaterialPageRoute(builder: (context) =>
+          // QRScanner()
+      QRScanner()
+      ),
     );
 
     if (result != null) {
