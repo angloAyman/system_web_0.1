@@ -1,8 +1,8 @@
 // //
 // // import 'package:flutter/material.dart';
-// // import 'package:system/features/billes/data/models/bill_model.dart';
-// // import 'package:system/features/billes/data/models/reportbill_model.dart';
-// // import 'package:system/features/billes/data/repositories/bill_repository.dart';
+// // import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+// // import 'package:system/Adminfeatures/billes/data/models/reportbill_model.dart';
+// // import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
 // //
 // // class SafeReportPage extends StatefulWidget {
 // //   @override
@@ -69,9 +69,9 @@
 //
 //
 // import 'package:flutter/material.dart';
-// import 'package:system/features/billes/data/models/bill_model.dart';
-// import 'package:system/features/billes/data/models/reportbill_model.dart';
-// import 'package:system/features/billes/data/repositories/bill_repository.dart';
+// import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+// import 'package:system/Adminfeatures/billes/data/models/reportbill_model.dart';
+// import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
 //
 // class SafeReportPage extends StatefulWidget {
 //   @override

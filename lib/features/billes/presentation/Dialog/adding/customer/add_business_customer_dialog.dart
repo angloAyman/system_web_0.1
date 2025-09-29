@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:system/features/billes/data/repositories/bill_repository.dart';
-import 'package:system/features/customer/data/model/business_customer_model.dart';
+import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
+import 'package:system/Adminfeatures/customer/data/model/business_customer_model.dart';
 
 Future<void> showAddBusinessCustomerDialog(
     BuildContext context, {

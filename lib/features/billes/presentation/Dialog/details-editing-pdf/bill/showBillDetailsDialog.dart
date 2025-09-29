@@ -1,12 +1,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:system/features/billes/data/models/bill_model.dart';
-import 'package:system/features/billes/data/repositories/bill_repository.dart';
-import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/bill/showEditBillDialog.dart';
-import 'package:system/features/billes/presentation/pdf/presentation/show_pdf_preview_dialog.dart';
-import 'package:system/features/report/data/model/report_model.dart';
-import 'package:system/features/report/data/repository/report_repository.dart';
+import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
+import 'package:system/Adminfeatures/billes/presentation/Dialog/adding/item/showAddItemDialog.dart';
+import 'package:system/Adminfeatures/billes/presentation/Dialog/details-editing-pdf/item/showEditBillDialog.dart';
+import 'package:system/Adminfeatures/billes/presentation/pdf/presentation/show_pdf_preview_dialog.dart';
+import 'package:system/Adminfeatures/report/data/model/report_model.dart';
+import 'package:system/Adminfeatures/report/data/repository/report_repository.dart';
+import 'package:system/main_screens/Responsive/AdminHomeResponsive.dart';
 
 class BillDetailsDialog extends StatefulWidget {
   final Bill bill;
@@ -19,6 +21,8 @@ class BillDetailsDialog extends StatefulWidget {
 
 class _BillDetailsDialogState extends State<BillDetailsDialog> {
   late Bill _bill;
+  final List<BillItem> items = [];
+  double _totalPrice = 0.0; // Initialize total price
 
   @override
   void initState() {
@@ -31,7 +35,8 @@ class _BillDetailsDialogState extends State<BillDetailsDialog> {
     required double pricePerUnit,
     required double quantity,
     required double discount,
-  }) {
+  })
+  {
     // Calculate the subtotal
     double subtotal = amount * pricePerUnit * quantity;
 
@@ -89,6 +94,32 @@ class _BillDetailsDialogState extends State<BillDetailsDialog> {
     });
   }
 
+  // void addItemCallback(BillItem item) {
+  //   items.add(item);
+  //   // Update total price whenever a new item is added
+  //   _totalPrice = items.fold(0.0, (sum, item) {
+  //     return sum + calculateTotalPrice(
+  //       amount: item.amount,
+  //       pricePerUnit: item.price_per_unit,
+  //       quantity: item.quantity,
+  //       discount: item.discount,
+  //     );
+  //   });
+  // }
+
+  // Function to open the edit bill dialog
+  // void _showAddItemDialog() {
+  //   final updatedItems = List<BillItem>.from(_bill.items);
+  //
+  //   showAddItemDialog(context: context,onAddItem: (item) {
+  //       setState(() {
+  //         // updatedItems.add(item);
+  //         addItemCallback(item);
+  //       });
+  //     },
+  //   );
+  // }
+
 
   Future<List<Map<String, dynamic>>> _fetchPayments(int billId) async {
     final response = await Supabase.instance.client
@@ -120,7 +151,7 @@ class _BillDetailsDialogState extends State<BillDetailsDialog> {
             Text('التاريخ: ${_bill.date.year}/${_bill.date.month}/${_bill.date.day}'),
             Text('حالة الدفع: ${_bill.status}'),
             const SizedBox(height: 16),
-            const Text('تفاصيل الدفع:', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('تفاصيل الدفع:', style: TextStyle(fontWeight: FontWeight.bold)),
             // Fetch and display payments
             FutureBuilder<List<Map<String, dynamic>>>(
               future: _fetchPayments(_bill.id),
@@ -170,9 +201,7 @@ class _BillDetailsDialogState extends State<BillDetailsDialog> {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Text(
-                            'المبلغ: ${payment['payment']} جنيه مصري-'
-                                ' التاريخ: ${_formatDate(payment['date'])} -'
-                                ' المستخدم: $userName',
+                            'المبلغ: ${payment['payment']} جنيه مصري-' ' التاريخ: ${_formatDate(payment['date'])} -'  ' المستخدم: $userName',
                           ),
                         );
                       }).toList(),
@@ -187,7 +216,6 @@ class _BillDetailsDialogState extends State<BillDetailsDialog> {
               },
             ),
 
-            // Text('مبلغ الدفع: ${_bill.payment} - تاريخ الدفع : ${_bill.date}'),
             const SizedBox(height: 16),
             const Text('الأصناف:', style: TextStyle(fontWeight: FontWeight.bold)),
             SingleChildScrollView(
@@ -202,7 +230,6 @@ class _BillDetailsDialogState extends State<BillDetailsDialog> {
                   DataColumn(label: Text('سعر القطعة')), // price_per_unit * amount
                   DataColumn(label: Text('الكمية')),   // Quantity
                   DataColumn(label: Text(' قيمة الخصم')),   // Quantity
-
                   DataColumn(label: Text('السعر')), // Price per Unit
                 ],
                 rows: _bill.items.map((item) {
@@ -216,7 +243,6 @@ class _BillDetailsDialogState extends State<BillDetailsDialog> {
                       DataCell(Text(item.quantity.toString())),
                       DataCell(Text(item.discount.toString())),
                       DataCell(
-                          // Text('\جنيه${(item.amount * item.price_per_unit * item.quantity)}')
                          Text(
                           calculateTotalPrice(
                             amount: item.amount,
@@ -248,17 +274,12 @@ class _BillDetailsDialogState extends State<BillDetailsDialog> {
               } جنيه مصري فقط لا غير   ',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-
-            // Text(
-            //   'الإجمالي:  ${_bill.items.fold(0.0, (sum, item) => sum + (item.amount * item.price_per_unit * item.quantity)).toStringAsFixed(2)} جنيه مصري فقط لاغير ',
-            //   style: const TextStyle(fontWeight: FontWeight.bold),
-            // ),
           ],
         ),
       ),
-      actions: [
 
-        TextButton(
+      actions: [
+            TextButton(
           onPressed: _openEditBillDialog,
           child: const Text('تعديل', style: TextStyle(color: Colors.cyan),),
         ),
@@ -306,9 +327,11 @@ class _BillDetailsDialogState extends State<BillDetailsDialog> {
           },
           child: const Text('حذف', style: TextStyle(color: Colors.red)),
         ),
-
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: ()  {
+            // Navigator.defaultRouteName;
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => adminHomeResponsive(),));
+          },
           child: const Text('إغلاق'),
         ),
       ],

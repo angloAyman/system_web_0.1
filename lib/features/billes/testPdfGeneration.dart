@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
-import 'package:system/features/billes/data/models/bill_model.dart';
+import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
 
 Future<void> generateArabicPdf(Bill bill, BuildContext context) async {
   try {

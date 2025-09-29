@@ -1,8 +1,8 @@
 
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:system/features/billes/data/models/bill_model.dart';
-import 'package:system/features/category/data/models/subCategory_model.dart';
+import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+import 'package:system/Adminfeatures/category/data/models/subCategory_model.dart';
 import '../models/category_model.dart';
 
 class CategoryRepository {

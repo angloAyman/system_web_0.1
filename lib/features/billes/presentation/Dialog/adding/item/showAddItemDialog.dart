@@ -1,9 +1,9 @@
 
 import 'package:flutter/material.dart';
-import 'package:system/features/billes/data/models/bill_model.dart';
-import 'package:system/features/category/data/models/category_model.dart';
-import 'package:system/features/category/data/models/subCategory_model.dart';
-import 'package:system/features/category/data/repositories/category_repository.dart';
+import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+import 'package:system/Adminfeatures/category/data/models/category_model.dart';
+import 'package:system/Adminfeatures/category/data/models/subCategory_model.dart';
+import 'package:system/Adminfeatures/category/data/repositories/category_repository.dart';
 
 Future<void> showAddItemDialog({
   required BuildContext context,
@@ -212,7 +212,9 @@ Future<void> showAddItemDialog({
                     decoration: InputDecoration(labelText: 'قيمة الخصم (%)'), // Label shows percentage
                     keyboardType: TextInputType.number,
                     onChanged: (value) {
-                      setDialogState(() {}); // Recalculate total price when discount changes
+                      setDialogState(() {
+
+                      }); // Recalculate total price when discount changes
                     },
                   ),
 
@@ -248,6 +250,8 @@ Future<void> showAddItemDialog({
 
 
 
+
+
                   if (selectedCategory == null || selectedSubcategory == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('برجاء اختيار العناصر الاساسية و الفرعية')),
@@ -263,9 +267,7 @@ Future<void> showAddItemDialog({
                     return;
                   }
 
-                  double discount = applyDiscount
-                      ? double.tryParse(discountController.text) ?? 0.0
-                      : 0.0;
+                  double discount = applyDiscount? double.tryParse(discountController.text) ?? 0.0: 0.0;
 
 
                   // Creating BillItem and passing it to onAddItem callback

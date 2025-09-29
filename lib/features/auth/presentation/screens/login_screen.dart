@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:system/features/auth/data/auth_service.dart';
+import 'package:system/Adminfeatures/auth/data/auth_service.dart';
 import 'package:system/core/shared/app_routes.dart';
 
 class LoginScreen extends StatefulWidget {

@@ -1,10 +1,10 @@
 // // // // // import 'package:flutter/material.dart';
 // // // // // import 'package:supabase_flutter/supabase_flutter.dart';
-// // // // // import 'package:system/features/billes/data/models/bill_model.dart';
-// // // // // import 'package:system/features/billes/data/repositories/bill_repository.dart';
-// // // // // import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/item/showEditItemDialog.dart';
-// // // // // import 'package:system/features/report/data/model/report_model.dart';
-// // // // // import 'package:system/features/report/data/repository/report_repository.dart';
+// // // // // import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+// // // // // import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
+// // // // // import 'package:system/Adminfeatures/billes/presentation/Dialog/details-editing-pdf/item/showEditItemDialog.dart';
+// // // // // import 'package:system/Adminfeatures/report/data/model/report_model.dart';
+// // // // // import 'package:system/Adminfeatures/report/data/repository/report_repository.dart';
 // // // // //
 // // // // // Future<void> showEditBillDialog(BuildContext context, Bill bill) async {
 // // // // //   final TextEditingController paymentController = TextEditingController(text: bill.payment.toString());
@@ -186,11 +186,11 @@
 // // //
 // // import 'package:flutter/material.dart';
 // // import 'package:supabase_flutter/supabase_flutter.dart';
-// // import 'package:system/features/billes/data/models/bill_model.dart';
-// // import 'package:system/features/billes/data/repositories/bill_repository.dart';
-// // import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/item/showEditItemDialog.dart';
-// // import 'package:system/features/report/data/model/report_model.dart';
-// // import 'package:system/features/report/data/repository/report_repository.dart';
+// // import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+// // import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
+// // import 'package:system/Adminfeatures/billes/presentation/Dialog/details-editing-pdf/item/showEditItemDialog.dart';
+// // import 'package:system/Adminfeatures/report/data/model/report_model.dart';
+// // import 'package:system/Adminfeatures/report/data/repository/report_repository.dart';
 // // //
 // // // Future<void> showEditBillDialog(BuildContext context, Bill bill) async {
 // // //   final TextEditingController paymentController = TextEditingController(text: bill.payment.toString());
@@ -362,7 +362,7 @@
 // // // }
 // // //
 // // // // import 'package:flutter/material.dart';
-// // // // import 'package:system/features/billes/data/models/bill_model.dart';
+// // // // import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
 // // // //
 // // // // Future<Bill?> showEditBillDialog(BuildContext context, Bill bill) async {
 // // // //   // final TextEditingController paymentController = TextEditingController(text: bill.payment.toString());
@@ -576,9 +576,9 @@
 // //   );
 // // }
 // import 'package:flutter/material.dart';
-// import 'package:system/features/billes/data/models/bill_model.dart';
-// import 'package:system/features/billes/data/repositories/bill_repository.dart';
-// import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/item/showEditItemDialog.dart';
+// import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+// import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
+// import 'package:system/Adminfeatures/billes/presentation/Dialog/details-editing-pdf/item/showEditItemDialog.dart';
 //
 // Future<void> showEditBillDialog(BuildContext context, Bill bill) async {
 //   final TextEditingController paymentController = TextEditingController(text: bill.payment.toString());
@@ -729,27 +729,397 @@
 //     },
 //   );
 // }
+// import 'package:flutter/material.dart';
+// import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+// import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
+// import 'package:system/Adminfeatures/billes/presentation/Dialog/adding/item/showAddItemDialog.dart';
+// import 'package:system/Adminfeatures/billes/presentation/Dialog/details-editing-pdf/item/showEditItemDialog.dart';
+//
+// Future<Bill?> showEditBillDialog(BuildContext context, Bill bill) async {
+//   final TextEditingController paymentController = TextEditingController(text: bill.payment.toString());
+//   final updatedItems = List<BillItem>.from(bill.items);
+//
+//   // Update Bill function
+//   Future<void> _updateBill() async {
+//     try {
+//       final updatedBill = Bill(
+//         id: bill.id,
+//         customerName: bill.customerName,
+//         date: bill.date,
+//         status: bill.status,
+//         payment: double.tryParse(paymentController.text) ?? bill.payment,
+//         items: updatedItems,
+//         userId: bill.userId,
+//         total_price: updatedItems.fold(0.0, (sum, item) => sum + item.price_per_unit * item.quantity),
+//         vault_id: bill.vault_id,
+//       );
+//
+//       final repository = BillRepository();
+//       await repository.updateBill(updatedBill);
+//
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         const SnackBar(content: Text('تم تحديث الفاتورة بنجاح')),
+//       );
+//       Navigator.of(context).pop(updatedBill); // Close dialog and pass updated bill back
+//       Navigator.of(context).pop();// Close dialog and pass updated bill back
+//       repository.getBills();
+//     } catch (e) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(content: Text('خطأ أثناء تحديث الفاتورة: $e')),
+//       );
+//     }
+//   }
+//
+//   showDialog(
+//     context: context,
+//     builder: (context) {
+//       return AlertDialog(
+//         title: const Text('تعديل الفاتورة'),
+//         content: StatefulBuilder(
+//           builder: (context, setState) {
+//             return SingleChildScrollView(
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   // Edit Items Table
+//                   Text('الأصناف:', style: const TextStyle(fontWeight: FontWeight.bold)),
+//                   SingleChildScrollView(
+//                     scrollDirection: Axis.horizontal,
+//                     child: DataTable(
+//                       columns: const [
+//                         DataColumn(label: Text('الفئة / الفرعية')), // Category Name
+//                         DataColumn(label: Text('الوصف')), // Description
+//                         DataColumn(label: Text('عدد الوحدات')), // Quantity
+//                         DataColumn(label: Text('الكمية')), // Quantity
+//                         DataColumn(label: Text('السعر القطعة')), // Price per Unit
+//                         DataColumn(label: Text('السعر الوحدة')), // Price per Unit
+//                         DataColumn(label: Text('الإجراءات')), // Actions
+//                       ],
+//                       rows: updatedItems.asMap().entries.map((entry) {
+//                         final index = entry.key;
+//                         final item = entry.value;
+//
+//                         return DataRow(
+//                           cells: [
+//                             DataCell(Text('${item.categoryName} / ${item.subcategoryName}')),
+//                             DataCell(Text(item.description ?? 'غير متوفر')),
+//                             DataCell(Text(item.amount?.toString() ?? '0')),
+//                             DataCell(Text(item.quantity?.toString() ?? '0')),
+//                             DataCell(Text(item.price_per_unit?.toString() ?? '0')),
+//                             DataCell(Text('\جنيه${(item.amount * item.price_per_unit)}')),
+//                             DataCell(
+//                               Row(
+//                                 children: [
+//                                   IconButton(
+//                                     icon: const Icon(Icons.edit, color: Colors.blue),
+//                                     onPressed: () {
+//                                       showEditItemDialog(
+//                                         context: context,
+//                                         item: item,
+//                                         onUpdateItem: (updatedItem) {
+//                                           setState(() {
+//                                             updatedItems[index] = updatedItem;
+//                                           });
+//                                         },
+//                                       );
+//                                     },
+//                                   ),
+//                                   IconButton(
+//                                     icon: const Icon(Icons.delete, color: Colors.red),
+//                                     onPressed: () {
+//                                       setState(() {
+//                                         updatedItems.removeAt(index); // Remove the item
+//                                       });
+//                                     },
+//                                   ),
+//                                 ],
+//                               ),
+//                             ),
+//                           ],
+//                         );
+//                       }).toList(),
+//                     ),
+//                   ),
+//
+//                   ElevatedButton(
+//                     onPressed: () {
+//                       showAddItemDialog(
+//                         context: context,
+//                         onAddItem: (item) {
+//                           setState(() {
+//                             updatedItems.add(item); // Add the new item to the list
+//                           });
+//                         },
+//                       );
+//                     },
+//                     child: const Text('إضافة صنف جديد'),
+//                   ),
+//
+//                 ],
+//               ),
+//             );
+//           },
+//         ),
+//         actions: [
+//           TextButton(
+//             onPressed: () => Navigator.of(context).pop(),
+//             child: const Text('إلغاء'),
+//           ),
+//           ElevatedButton(
+//             onPressed:(){
+//               _updateBill();
+//               },
+//             child: const Text('حفظ التعديلات'),
+//           ),
+//         ],
+//       );
+//     },
+//   );
+//   return null; // Add this return statement if nothing else is returned from the dialog
+// }
+// import 'package:flutter/material.dart';
+// import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+// import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
+// import 'package:system/Adminfeatures/billes/presentation/Dialog/adding/item/showAddItemDialog.dart';
+// import 'package:system/Adminfeatures/billes/presentation/Dialog/details-editing-pdf/item/showEditItemDialog.dart';
+//
+// Future<Bill?> showEditBillDialog(BuildContext context, Bill bill) async {
+//   final TextEditingController paymentController =
+//   TextEditingController(text: bill.payment.toString());
+//   final updatedItems = List<BillItem>.from(bill.items);
+//
+//   // Update Bill function with validation
+//   Future<void> _updateBill() async {
+//     try {
+//       if (updatedItems.isEmpty) {
+//         throw Exception('لا يمكن حفظ الفاتورة بدون عناصر.');
+//       }
+//
+//       final paymentValue = double.tryParse(paymentController.text);
+//       if (paymentValue == null || paymentValue < 0) {
+//         throw Exception('يرجى إدخال قيمة دفع صحيحة.');
+//       }
+//
+//       final updatedBill = Bill(
+//         id: bill.id,
+//         customerName: bill.customerName,
+//         date: bill.date,
+//         status: bill.status,
+//         payment: paymentValue,
+//         items: updatedItems,
+//         userId: bill.userId,
+//         total_price: updatedItems.fold(
+//           0.0,
+//               (sum, item) => sum + (item.price_per_unit ?? 0) * (item.quantity ?? 0),
+//         ),
+//         vault_id: bill.vault_id,
+//       );
+//
+//       final repository = BillRepository();
+//       await repository.updateBill(updatedBill);
+//
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         const SnackBar(content: Text('تم تحديث الفاتورة بنجاح')),
+//       );
+//       Navigator.of(context).pop(updatedBill); // Close dialog and pass updated bill back
+//     } catch (e) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(content: Text('خطأ أثناء تحديث الفاتورة: $e')),
+//       );
+//     }
+//   }
+//
+//   showDialog(
+//     context: context,
+//     builder: (context) {
+//       return AlertDialog(
+//         title: const Text('تعديل الفاتورة'),
+//         content: StatefulBuilder(
+//           builder: (context, setState) {
+//             return SingleChildScrollView(
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   // Edit Items Table
+//                   const Text('الأصناف:', style: TextStyle(fontWeight: FontWeight.bold)),
+//                   SingleChildScrollView(
+//                     scrollDirection: Axis.horizontal,
+//                     child: DataTable(
+//                       columns: const [
+//                         DataColumn(label: Text('الفئة / الفرعية')), // Category Name
+//                         DataColumn(label: Text('الوصف')), // Description
+//                         DataColumn(label: Text('عدد الوحدات')), // Units
+//                         DataColumn(label: Text('الكمية')), // Quantity
+//                         DataColumn(label: Text('قيمة الخصم')), // Price per Unit
+//                         DataColumn(label: Text('السعر لكل وحدة')), // Price per Unit
+//                         DataColumn(label: Text('السعر الإجمالي')), // Total Price
+//                         DataColumn(label: Text('الإجراءات')), // Actions
+//                       ],
+//                       rows: updatedItems.asMap().entries.map((entry) {
+//                         final index = entry.key;
+//                         final item = entry.value;
+//
+//                         return DataRow(
+//                           cells: [
+//                             DataCell(Text('${item.categoryName} / ${item.subcategoryName}')),
+//                             DataCell(Text(item.description ?? 'غير متوفر')),
+//                             DataCell(Text(item.amount?.toString() ?? '0')),
+//                             DataCell(Text(item.quantity?.toString() ?? '0')),
+//                             DataCell(Text(item.discount?.toString() ?? '0.0')),
+//                             DataCell(Text(item.price_per_unit?.toString() ?? '0')),
+//                             DataCell(Text(
+//                                 '\جنيه ${(item.price_per_unit ?? 0) * (item.quantity ?? 0)}')),
+//                             DataCell(
+//                               Row(
+//                                 children: [
+//                                   IconButton(
+//                                     icon: const Icon(Icons.edit, color: Colors.blue),
+//                                     onPressed: () {
+//                                       showEditItemDialog(
+//                                         context: context,
+//                                         item: item,
+//                                         onUpdateItem: (updatedItem) {
+//                                           setState(() {
+//                                             updatedItems[index] = updatedItem;
+//                                           });
+//                                         },
+//                                       );
+//                                     },
+//                                   ),
+//                                   IconButton(
+//                                     icon: const Icon(Icons.delete, color: Colors.red),
+//                                     onPressed: () {
+//                                       setState(() {
+//                                         updatedItems.removeAt(index); // Remove the item
+//                                       });
+//                                     },
+//                                   ),
+//                                 ],
+//                               ),
+//                             ),
+//                           ],
+//                         );
+//                       }).toList(),
+//                     ),
+//                   ),
+//
+//                   ElevatedButton(
+//                     onPressed: () {
+//                       showAddItemDialog(
+//                         context: context,
+//                         onAddItem: (item) {
+//                           setState(() {
+//                             updatedItems.add(item); // Add the new item to the list
+//                           });
+//                         },
+//                       );
+//                     },
+//                     child: const Text('إضافة صنف جديد'),
+//                   ),
+//
+//                   // Payment Field
+//                   const SizedBox(height: 20),
+//                   // TextField(
+//                   //   controller: paymentController,
+//                   //   keyboardType: TextInputType.number,
+//                   //   decoration: const InputDecoration(
+//                   //     labelText: 'قيمة الدفع',
+//                   //     border: OutlineInputBorder(),
+//                   //   ),
+//                   // ),
+//                 ],
+//               ),
+//             );
+//           },
+//         ),
+//         actions: [
+//           TextButton(
+//             onPressed: () => Navigator.of(context).pop(),
+//             child: const Text('إلغاء'),
+//           ),
+//           ElevatedButton(
+//             onPressed: _updateBill,
+//             child: const Text('حفظ التعديلات'),
+//           ),
+//         ],
+//       );
+//     },
+//   );
+//   return null; // Add this return statement if nothing else is returned from the dialog
+// }
 import 'package:flutter/material.dart';
-import 'package:system/features/billes/data/models/bill_model.dart';
-import 'package:system/features/billes/data/repositories/bill_repository.dart';
-import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/item/showEditItemDialog.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
+import 'package:system/Adminfeatures/billes/presentation/Dialog/adding/item/showAddItemDialog.dart';
+import 'package:system/Adminfeatures/billes/presentation/Dialog/details-editing-pdf/item/showEditItemDialog.dart';
 
 Future<Bill?> showEditBillDialog(BuildContext context, Bill bill) async {
-  final TextEditingController paymentController = TextEditingController(text: bill.payment.toString());
+  final TextEditingController paymentController =   TextEditingController(text: bill.payment.toString());
   final updatedItems = List<BillItem>.from(bill.items);
 
-  // Update Bill function
+  // Function to delete an item from the bill_items array in the bills table
+  Future<void> _deleteItemFromDatabase(Bill bill, BillItem item) async {
+    final supabase = Supabase.instance.client;
+
+    try {
+      // Create a new list excluding the item to be deleted
+      final updatedItems =
+          bill.items.where((existingItem) => existingItem != item).toList();
+
+      // Update the bills table with the modified bill_items array
+      final response = await supabase.from('bills').update({
+        'items': updatedItems.map((item) => item.toJson()).toList()
+      }).eq('id', bill.id);
+
+      if (response.error != null) {
+        throw Exception(response.error!.message);
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم حذف العنصر بنجاح')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطأ أثناء حذف العنصر: $e')),
+      );
+    }
+  }
+
+  // Function to validate and update the bill
   Future<void> _updateBill() async {
     try {
+      if (updatedItems.isEmpty) {
+        throw Exception('لا يمكن حفظ الفاتورة بدون عناصر.');
+      }
+
+      final paymentValue = double.tryParse(paymentController.text);
+      if (paymentValue == null || paymentValue < 0) {
+        throw Exception('يرجى إدخال قيمة دفع صحيحة.');
+      }
+
       final updatedBill = Bill(
         id: bill.id,
         customerName: bill.customerName,
         date: bill.date,
         status: bill.status,
-        payment: double.tryParse(paymentController.text) ?? bill.payment,
+        payment: paymentValue,
         items: updatedItems,
         userId: bill.userId,
-        total_price: updatedItems.fold(0.0, (sum, item) => sum + item.price_per_unit * item.quantity),
+        total_price: updatedItems.fold(
+          0.0,
+              (sum, item) {
+            final itemPrice = (item.price_per_unit ?? 0) * (item.quantity ?? 0);
+            final discountValue = itemPrice * ((item.discount ?? 0) / 100);
+            return sum + (itemPrice - discountValue);
+          },
+        ),
+
+        // total_price: updatedItems.fold(
+        //   0.0,
+        //   (sum, item) =>
+        //       sum + (item.price_per_unit ?? 0) * (item.quantity ?? 0),
+        // ),
         vault_id: bill.vault_id,
       );
 
@@ -759,9 +1129,7 @@ Future<Bill?> showEditBillDialog(BuildContext context, Bill bill) async {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تم تحديث الفاتورة بنجاح')),
       );
-      Navigator.of(context).pop(updatedBill); // Close dialog and pass updated bill back
-      Navigator.of(context).pop();// Close dialog and pass updated bill back
-      repository.getBills();
+      Navigator.of(context).pop(updatedBill);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('خطأ أثناء تحديث الفاتورة: $e')),
@@ -769,30 +1137,31 @@ Future<Bill?> showEditBillDialog(BuildContext context, Bill bill) async {
     }
   }
 
-  showDialog(
+  return showDialog<Bill>(
     context: context,
     builder: (context) {
-      return AlertDialog(
-        title: const Text('تعديل الفاتورة'),
-        content: StatefulBuilder(
-          builder: (context, setState) {
-            return SingleChildScrollView(
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('تعديل الفاتورة'),
+            content: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Edit Items Table
-                  Text('الأصناف:', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('الأصناف:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
                       columns: const [
-                        DataColumn(label: Text('الفئة / الفرعية')), // Category Name
-                        DataColumn(label: Text('الوصف')), // Description
-                        DataColumn(label: Text('عدد الوحدات')), // Quantity
-                        DataColumn(label: Text('الكمية')), // Quantity
-                        DataColumn(label: Text('السعر القطعة')), // Price per Unit
-                        DataColumn(label: Text('السعر الوحدة')), // Price per Unit
-                        DataColumn(label: Text('الإجراءات')), // Actions
+                        DataColumn(label: Text('الفئة / الفرعية')),
+                        DataColumn(label: Text('الوصف')),
+                        DataColumn(label: Text('عدد الوحدات')),
+                        DataColumn(label: Text('الكمية')),
+                        DataColumn(label: Text('السعر لكل وحدة')),
+                        DataColumn(label: Text('قيمة الخصم')),
+                        DataColumn(label: Text('السعر الإجمالي')),
+                        DataColumn(label: Text('الإجراءات')),
                       ],
                       rows: updatedItems.asMap().entries.map((entry) {
                         final index = entry.key;
@@ -800,17 +1169,22 @@ Future<Bill?> showEditBillDialog(BuildContext context, Bill bill) async {
 
                         return DataRow(
                           cells: [
-                            DataCell(Text('${item.categoryName} / ${item.subcategoryName}')),
+                            DataCell(Text(
+                                '${item.categoryName} / ${item.subcategoryName}')),
                             DataCell(Text(item.description ?? 'غير متوفر')),
                             DataCell(Text(item.amount?.toString() ?? '0')),
                             DataCell(Text(item.quantity?.toString() ?? '0')),
+                            // DataCell(Text(item.discount.toString())),
                             DataCell(Text(item.price_per_unit?.toString() ?? '0')),
-                            DataCell(Text('\جنيه${(item.amount * item.price_per_unit)}')),
+                            DataCell(Text(item.discount?.toString() ?? '0.0')),
+                            DataCell(Text('\جنيه ${(item.price_per_unit ?? 0) * (item.quantity ?? 0)}',
+                            )),
                             DataCell(
                               Row(
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.edit, color: Colors.blue),
+                                    icon: const Icon(Icons.edit,
+                                        color: Colors.blue),
                                     onPressed: () {
                                       showEditItemDialog(
                                         context: context,
@@ -824,10 +1198,13 @@ Future<Bill?> showEditBillDialog(BuildContext context, Bill bill) async {
                                     },
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red),
-                                    onPressed: () {
+                                    icon: const Icon(Icons.delete,
+                                        color: Colors.red),
+                                    onPressed: () async {
+                                      await _deleteItemFromDatabase(bill,
+                                          item); // Pass the full bill and the item to delete
                                       setState(() {
-                                        updatedItems.removeAt(index); // Remove the item
+                                        updatedItems.removeAt(index);
                                       });
                                     },
                                   ),
@@ -839,24 +1216,13 @@ Future<Bill?> showEditBillDialog(BuildContext context, Bill bill) async {
                       }).toList(),
                     ),
                   ),
-
-                  // Add New Item Button
-                  TextButton(
+                  ElevatedButton(
                     onPressed: () {
-                      showEditItemDialog(
+                      showAddItemDialog(
                         context: context,
-                        item: BillItem(
-                          categoryName: '',
-                          subcategoryName: '',
-                          amount: 0.0,
-                          price_per_unit: 0.0,
-                          quantity: 0.0,
-                          description: '',
-                          discount: 0.0,
-                        ), // Create a new BillItem instance
-                        onUpdateItem: (newItem) {
+                        onAddItem: (item) {
                           setState(() {
-                            updatedItems.add(newItem); // Add new item to the list
+                            updatedItems.add(item);
                           });
                         },
                       );
@@ -865,23 +1231,21 @@ Future<Bill?> showEditBillDialog(BuildContext context, Bill bill) async {
                   ),
                 ],
               ),
-            );
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed:(){
-              _updateBill();
-              },
-            child: const Text('حفظ التعديلات'),
-          ),
-        ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('إلغاء'),
+              ),
+              ElevatedButton(
+                // onPressed: () => _updateBill,
+                onPressed: _updateBill,
+                child: const Text('حفظ التعديلات'),
+              ),
+            ],
+          );
+        },
       );
     },
   );
-  return null; // Add this return statement if nothing else is returned from the dialog
 }

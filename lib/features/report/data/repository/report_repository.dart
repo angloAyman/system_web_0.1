@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:system/features/report/data/model/report_model.dart';
+import 'package:system/Adminfeatures/report/data/model/report_model.dart';
 
 class ReportRepository {
   final SupabaseClient _client = Supabase.instance.client;

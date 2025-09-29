@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:system/core/themes/AppColors/them_constants.dart';
-import 'package:system/features/billes/data/models/bill_model.dart';
-import 'package:system/features/billes/data/repositories/bill_repository.dart';
-import 'package:system/features/billes/presentation/Dialog/adding/customer/add_business_customer_dialog.dart';
-import 'package:system/features/billes/presentation/Dialog/adding/customer/add_customer_dialog.dart';
-import 'package:system/features/billes/presentation/Dialog/adding/item/showAddItemDialog.dart';
-import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/item/showEditItemDialog.dart';
-import 'package:system/features/customer/data/model/business_customer_model.dart';
-import 'package:system/features/report/data/model/report_model.dart';
+import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
+import 'package:system/Adminfeatures/billes/presentation/Dialog/adding/customer/add_business_customer_dialog.dart';
+import 'package:system/Adminfeatures/billes/presentation/Dialog/adding/customer/add_customer_dialog.dart';
+import 'package:system/Adminfeatures/billes/presentation/Dialog/adding/item/showAddItemDialog.dart';
+import 'package:system/Adminfeatures/billes/presentation/Dialog/details-editing-pdf/item/showEditItemDialog.dart';
+import 'package:system/Adminfeatures/customer/data/model/business_customer_model.dart';
+import 'package:system/Adminfeatures/report/data/model/report_model.dart';
 
 Future<void> showAddBillDialog({
   required BuildContext context,
@@ -473,14 +473,6 @@ Future<void> showAddBillDialog({
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text('${item.discount}'),
                               ),
-
-                              //8- الإجمالي
-                              // Padding(
-                              //   padding: const EdgeInsets.all(8.0),
-                              //   child: Text(
-                              //       '\جنيه${(item.amount * item.price_per_unit * item.quantity) *
-                              //           (1 - (item.discount / 100))}'),
-                              // ),
 
                               Padding(
                               padding: const EdgeInsets.all(8.0),

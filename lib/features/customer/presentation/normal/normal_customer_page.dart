@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:system/features/customer/data/model/normal_customer_model.dart';
-import 'package:system/features/customer/data/repository/normal_customer_repository.dart';
-import 'package:system/features/customer/presentation/widgets/NormalCustomerDialogs.dart';
+import 'package:system/Adminfeatures/customer/data/model/normal_customer_model.dart';
+import 'package:system/Adminfeatures/customer/data/repository/normal_customer_repository.dart';
+import 'package:system/Adminfeatures/customer/presentation/widgets/NormalCustomerDialogs.dart';
 
 class NormalCustomerPage extends StatefulWidget {
   final String searchQuery;

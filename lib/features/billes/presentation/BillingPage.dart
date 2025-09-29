@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:system/core/constants/app_constants.dart';
 import 'package:system/core/themes/AppColors/them_constants.dart';
-import 'package:system/features/billes/FavoriteBillsPage.dart';
-import 'package:system/features/billes/data/models/bill_model.dart';
-import 'package:system/features/billes/data/repositories/bill_repository.dart';
-import 'package:system/features/billes/presentation/Dialog/adding/bill/showAddBillDialog.dart';
-import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/bill/showBillDetailsDialog.dart';
+import 'package:system/Adminfeatures/billes/FavoriteBillsPage.dart';
+import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
+import 'package:system/Adminfeatures/billes/presentation/Dialog/adding/bill/showAddBillDialog.dart';
+import 'package:system/Adminfeatures/billes/presentation/Dialog/details-editing-pdf/bill/showBillDetailsDialog.dart';
 
 class BillingPage extends StatefulWidget {
   @override
@@ -373,14 +373,6 @@ class _BillingPageState extends State<BillingPage> {
                               : Colors.orange,
                         ),
                       ),
-                      // trailing:
-                      //  IconButton(
-                      //    icon: Icon(
-                      //      bill.isFavorite ? Icons.account_balance : Icons.account_balance_outlined,
-                      //      color: bill.isFavorite ? AppColors.primary : null,
-                      //    ),
-                      //    onPressed: () => _toggleFavoriteStatusAndUpdateDescription(bill),
-                      //  ),
                       trailing: IconButton(
                         icon: Icon(
                           bill.isFavorite
@@ -416,13 +408,12 @@ class _BillingPageState extends State<BillingPage> {
                           }
                         },
                       ),
-
                       onTap: () {
-                        showBillDetailsDialog(
-                          context,
-                          bill,
-                        );
+                        showBillDetailsDialog(context,bill);
+                        refreshBills();
+
                       },
+
                     );
                   },
                 );

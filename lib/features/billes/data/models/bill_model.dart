@@ -103,6 +103,9 @@ class Bill {
   }
 }
 
+
+
+
 class BillItem {
   // int id; // ID field added to uniquely identify the item
   late final String categoryName;
@@ -110,6 +113,7 @@ class BillItem {
   late final double amount;
   late final double price_per_unit;
   late final double discount;
+  // final double? discount; // Allow null or ensure a default value is provided
   late final double quantity;
   late final String description; // The new field for description
 
@@ -119,7 +123,8 @@ class BillItem {
     required this.subcategoryName,
     required this.amount,
     required this.price_per_unit,
-    required this.discount,
+    // required this.discount,
+    this.discount = 0.0, // Default value for discount
     required this.quantity,
     required this.description,
   });
@@ -132,7 +137,9 @@ class BillItem {
       subcategoryName: json['subcategory_name'],
       amount: (json['amount'] as num).toDouble(),
       price_per_unit: (json['price_per_unit'] as num).toDouble(),
-      discount: (json['discount'] as num).toDouble(),
+      // discount: (json['discount'] as num).toDouble(),
+      discount: (json['discount'] as num?)?.toDouble() ?? 0.0, // Handle null gracefully
+      // discount: json['discount'] ?? 0.0, // Handle null value
       quantity: (json['quantity'] as num).toDouble(),
       description: json['description'] ?? '',
     );
@@ -201,6 +208,7 @@ class Payment {
     };
   }
 }
+
 
 class PaymentDetails {
   final String userName;

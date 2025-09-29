@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:system/features/Vaults/data/repositories/supabase_vault_repository.dart';
+import 'package:system/Adminfeatures/Vaults/data/repositories/supabase_vault_repository.dart';
 
 class BillsDialog extends StatefulWidget {
   final String vaultId;
+  final String vaultName;
 
-  const BillsDialog({Key? key, required this.vaultId}) : super(key: key);
+  const BillsDialog({Key? key, required this.vaultId,required this.vaultName}) : super(key: key);
 
   @override
   _BillsDialogState createState() => _BillsDialogState();
@@ -77,7 +78,7 @@ class _BillsDialogState extends State<BillsDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('الفواتير المرتبطة بالخزنة'),
+      title: Text('الفواتير المرتبطة بالخزنة (${widget.vaultName})'),
       content: Column(
         children: [
           // Search Bar
@@ -166,7 +167,6 @@ class _BillsDialogState extends State<BillsDialog> {
                         DataCell(Text(bill['customer_name'] ?? '')),
                         // DataCell(Text(bill['date'] ?? '')),
                         DataCell(Text(formattedDate)), // Display formatted date
-
                         DataCell(Text(bill['status'] ?? '')),
                         DataCell(Text('جنيه مصري: ${bill['total_price']?.toString() ?? '0.00'}')),
                         DataCell(Text('تم دفع: ${bill['payment']?.toString() ?? '0.00'}')),

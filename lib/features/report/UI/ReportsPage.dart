@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:system/features/report/data/model/report_model.dart';
-import 'package:system/features/report/data/repository/report_repository.dart';
+import 'package:system/Adminfeatures/report/data/model/report_model.dart';
+import 'package:system/Adminfeatures/report/data/repository/report_repository.dart';
 
 class ReportsPage extends StatefulWidget {
   const ReportsPage({Key? key}) : super(key: key);

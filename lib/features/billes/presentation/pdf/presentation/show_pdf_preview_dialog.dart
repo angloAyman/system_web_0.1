@@ -5,8 +5,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:system/features/billes/data/models/bill_model.dart';
-import 'package:system/features/billes/presentation/pdf/services/pdf_storage_service.dart';
+import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+import 'package:system/Adminfeatures/billes/presentation/pdf/services/pdf_storage_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../services/pdf_service.dart';

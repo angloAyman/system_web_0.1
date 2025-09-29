@@ -1,7 +1,7 @@
 // add_customer_dialog.dart
 import 'package:flutter/material.dart';
-import 'package:system/features/billes/data/repositories/bill_repository.dart';
-import 'package:system/features/customer/data/model/normal_customer_model.dart';
+import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
+import 'package:system/Adminfeatures/customer/data/model/normal_customer_model.dart';
 
 Future<void> showAddNormalcustomerDialog(BuildContext context,
     {required Function onAdd}) async {

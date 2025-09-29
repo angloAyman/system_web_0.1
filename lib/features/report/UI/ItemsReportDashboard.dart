@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // For date formatting
-import 'package:system/features/billes/data/models/bill_model.dart';
-import 'package:system/features/category/data/models/category_model.dart';
-import 'package:system/features/category/data/models/subCategory_model.dart';
-import 'package:system/features/category/data/repositories/category_repository.dart';
-import 'package:system/features/report/UI/ReportCategoryOperationsPage.dart';
+import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+import 'package:system/Adminfeatures/category/data/models/category_model.dart';
+import 'package:system/Adminfeatures/category/data/models/subCategory_model.dart';
+import 'package:system/Adminfeatures/category/data/repositories/category_repository.dart';
+import 'package:system/Adminfeatures/report/UI/ReportCategoryOperationsPage.dart';
 
 class ItemsReportDashboard extends StatefulWidget {
   @override

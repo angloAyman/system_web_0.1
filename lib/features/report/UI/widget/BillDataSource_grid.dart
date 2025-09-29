@@ -1,7 +1,7 @@
 // // DataSource for SfDataGrid
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'package:system/features/billes/data/models/bill_model.dart';
+import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
 
 class BillDataSource extends DataGridSource {
   late List<Bill> bills;

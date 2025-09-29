@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase/supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:system/features/billes/data/models/bill_model.dart';
-import 'package:system/features/category/data/models/subCategory_model.dart';
-import 'package:system/features/customer/data/model/business_customer_model.dart';
-import 'package:system/features/customer/data/model/normal_customer_model.dart';
-import 'package:system/features/report/data/model/report_model.dart';
+import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+import 'package:system/Adminfeatures/category/data/models/subCategory_model.dart';
+import 'package:system/Adminfeatures/customer/data/model/business_customer_model.dart';
+import 'package:system/Adminfeatures/customer/data/model/normal_customer_model.dart';
+import 'package:system/Adminfeatures/report/data/model/report_model.dart';
 
 import '../../../customer/data/model/customer_model.dart';
 
@@ -221,6 +221,7 @@ class BillRepository {
           'price_per_unit': item.price_per_unit,
           'quantity': item.quantity,
           'description': item.description,
+          'discount':item.discount,
         };
       }).toList();
 

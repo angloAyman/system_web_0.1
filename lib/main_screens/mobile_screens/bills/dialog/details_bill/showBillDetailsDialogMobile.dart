@@ -1,0 +1,354 @@
+
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:system/features/billes/data/models/bill_model.dart';
+import 'package:system/features/billes/data/repositories/bill_repository.dart';
+import 'package:system/features/billes/presentation/Dialog/adding/item/showAddItemDialog.dart';
+import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/bill/showEditBillDialog.dart';
+import 'package:system/features/billes/presentation/pdf/presentation/show_pdf_preview_dialog.dart';
+import 'package:system/features/report/data/model/report_model.dart';
+import 'package:system/features/report/data/repository/report_repository.dart';
+import 'package:system/main_screens/Responsive/AdminHomeResponsive.dart';
+
+class BillDetailsDialog extends StatefulWidget {
+  final Bill bill;
+
+  const BillDetailsDialog({Key? key, required this.bill}) : super(key: key);
+
+  @override
+  _BillDetailsDialogState createState() => _BillDetailsDialogState();
+}
+
+class _BillDetailsDialogState extends State<BillDetailsDialog> {
+  late Bill _bill;
+  final List<BillItem> items = [];
+  double _totalPrice = 0.0; // Initialize total price
+
+  @override
+  void initState() {
+    super.initState();
+    _bill = widget.bill;
+  }
+
+  double calculateTotalPrice({
+    // required double amount,
+    // required double pricePerUnit,
+    // required double quantity,
+    required double total_Item_price,
+  })
+  {
+    // // Calculate the subtotal
+    // double subtotal = amount * pricePerUnit * quantity;
+    //
+    // // Calculate the discount amount
+    // double discountAmount = subtotal * (discount / 100);
+    //
+    // // Calculate the total price after applying the discount
+    // double totalPrice = subtotal - discountAmount;
+    double totalPrice = total_Item_price;
+
+    return totalPrice;
+  }
+  // @override
+  // void dispose() {
+  //   // Cancel any active listeners or operations
+  //   super.dispose();
+  // }
+
+  // Function to remove a bill
+  Future<void> _removeBill(BuildContext context, int billId, Report report) async {
+    final BillRepository _billRepository = BillRepository();
+    final ReportRepository _reportRepository = ReportRepository();
+
+    try {
+      // Remove the bill from the database
+       _billRepository.removeBill(billId);
+
+      // Add the report to the system
+       _reportRepository.addReport(report);
+
+      // Ensure the widget is still mounted before accessing context
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Bill removed successfully')),
+        );
+        // Navigator.of(context).pop(); // Close the details dialog
+      }
+    } catch (e) {
+      // Ensure the widget is still mounted before accessing context
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error removing bill: $e')),
+        );
+      }
+    }
+  }
+
+  // Function to open the edit bill dialog
+  void _openEditBillDialog() {
+    showEditBillDialog(context, _bill).then((updatedBill) {
+      if (updatedBill != null) {
+        setState(() {
+          _bill = updatedBill; // Update the bill with new data
+        });
+      }
+    });
+  }
+
+  // void addItemCallback(BillItem item) {
+  //   items.add(item);
+  //   // Update total price whenever a new item is added
+  //   _totalPrice = items.fold(0.0, (sum, item) {
+  //     return sum + calculateTotalPrice(
+  //       amount: item.amount,
+  //       pricePerUnit: item.price_per_unit,
+  //       quantity: item.quantity,
+  //       discount: item.discount,
+  //     );
+  //   });
+  // }
+
+  // Function to open the edit bill dialog
+  // void _showAddItemDialog() {
+  //   final updatedItems = List<BillItem>.from(_bill.items);
+  //
+  //   showAddItemDialog(context: context,onAddItem: (item) {
+  //       setState(() {
+  //         // updatedItems.add(item);
+  //         addItemCallback(item);
+  //       });
+  //     },
+  //   );
+  // }
+
+
+  Future<List<Map<String, dynamic>>> _fetchPayments(int billId) async {
+    final response = await Supabase.instance.client
+        .from('payment')
+        .select('*, users(name)')
+        .eq('bill_id', billId)
+        .order('date', ascending: false)
+        ;
+
+    if (response == null) {
+      throw Exception('Failed to fetch payments: ${response}');
+    }
+
+    return List<Map<String, dynamic>>.from(response ?? []);
+  }
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('تفاصيل الفاتورة'),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('رقم الفاتورة: ${_bill.id}'),
+            Text('اسم العميل: ${_bill.customerName}'),
+            Text('التاريخ: ${_bill.date.year}/${_bill.date.month}/${_bill.date.day}'),
+            Text('حالة الدفع: ${_bill.status}'),
+            const SizedBox(height: 16),
+            Text('تفاصيل الدفع:', style: TextStyle(fontWeight: FontWeight.bold)),
+            // Fetch and display payments
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: _fetchPayments(_bill.id),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Text('خطأ في تحميل المدفوعات: ${snapshot.error}');
+                }
+                final payments = snapshot.data ?? [];
+                if (payments.isEmpty) {
+                  return const Text('لا توجد مدفوعات لهذه الفاتورة.');
+                }
+
+                // Calculate the total payment for the bill
+                final totalPayment = payments.fold<double>(
+                  0.0,
+                      (sum, payment) => sum + (payment['payment'] ?? 0),
+                );
+
+                // Method to format date to DD/MM/YYYY format
+                String _formatDate(dynamic date) {
+                  if (date is DateTime) {
+                    return '${date.day.toString().padLeft(2, '0')}/'
+                        '${date.month.toString().padLeft(2, '0')}/'
+                        '${date.year}';
+                  } else if (date is String) {
+                    // If the date is already a string in a known format (like 'YYYY-MM-DD'), you can parse it
+                    final parsedDate = DateTime.tryParse(date);
+                    if (parsedDate != null) {
+                      return '${parsedDate.day.toString().padLeft(2, '0')}/'
+                          '${parsedDate.month.toString().padLeft(2, '0')}/'
+                          '${parsedDate.year}';
+                    }
+                  }
+                  return 'غير محدد'; // Return a default value if the date is invalid
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: payments.map((payment) {
+                        final userName = payment['users']?['name'] ?? 'غير معروف'; // Fetch user_name
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Text(
+                            'المبلغ: ${payment['payment']} جنيه مصري-' ' التاريخ: ${_formatDate(payment['date'])} -'  ' المستخدم: $userName',
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16), // Add spacing between the payment list and total
+                    Text(
+                      'إجمالي المدفوعات: ${totalPayment.toStringAsFixed(2)} جنيه مصري',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                );
+              },
+            ),
+
+            const SizedBox(height: 16),
+            const Text('الأصناف:', style: TextStyle(fontWeight: FontWeight.bold)),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingTextStyle: TextStyle(color: Colors.cyan),
+                columns: const [
+                  DataColumn(label: Text('الفئة/الفرعية')), // Category Name/description
+                  DataColumn(label: Text('وصف')), // description
+                  DataColumn(label: Text('سعر الوحدة')), // price_per_unit
+                  DataColumn(label: Text('عدد الوحدات')), // quantity
+                  DataColumn(label: Text('سعر القطعة')), // price_per_unit * amount
+                  DataColumn(label: Text('الكمية')),   // Quantity
+                  DataColumn(label: Text(' قيمة الخصم')),   // Quantity
+                  DataColumn(label: Text(' نوع الخصم')),   // Quantity
+                  DataColumn(label: Text('السعر')), // Price per Unit
+                ],
+                rows: _bill.items.map((item) {
+                  return DataRow(
+                    cells: [
+                      DataCell(Text('${item.categoryName} / ${item.subcategoryName}')),
+                      DataCell(Text(item.description ?? 'غير متوفر')),
+                      DataCell(Text(item.price_per_unit.toString())),
+                      DataCell(Text(item.amount.toString())),
+                      DataCell(Text('\جنيه${(item.amount * item.price_per_unit)}')),
+                      DataCell(Text(item.quantity.toString())),
+                      DataCell(Text(item.discount.toString())),
+                      DataCell(Text(item.discountType.toString())),
+                      DataCell(
+                         Text(
+                          calculateTotalPrice(
+                            // amount: item.amount,
+                            // pricePerUnit: item.price_per_unit,
+                            // quantity: item.quantity,
+                            // discount: item.discount,
+                            total_Item_price: item.total_Item_price,
+                          ) .toString(),
+                          style: TextStyle(fontSize: 16.0),
+                        ),
+
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+            const Divider(),
+
+            Text(
+              'الإجمالي:   ${
+                  _bill.items.fold(0.0, (sum, item) {
+                    return sum + calculateTotalPrice(
+                      // amount: item.amount,
+                      // pricePerUnit: item.price_per_unit,
+                      // quantity: item.quantity,
+                      // discount: item.discount,
+                      total_Item_price: item.total_Item_price,
+                    );
+                  })
+              } جنيه مصري فقط لا غير   ',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+
+      actions: [
+            TextButton(
+          onPressed: _openEditBillDialog,
+          child: const Text('تعديل', style: TextStyle(color: Colors.cyan),),
+        ),
+        TextButton(
+          onPressed: () async {
+            await showPdfPreviewDialog(context, _bill);
+          },
+          child: const Text('PDF'),
+        ),
+        TextButton(
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (dialogContext) {
+                return AlertDialog(
+                  title: const Text('تأكيد الحذف'),
+                  content: const Text('هل أنت متأكد من حذف الفاتورة؟'),
+                  actions: [
+                    TextButton(
+                      onPressed: ()  {
+                        final user = Supabase.instance.client.auth.currentUser;
+                        final report = Report(
+                          id: user!.id,
+                          title: "حذف فاتورة",
+                          user_name: user.id,
+                          date: DateTime.now(),
+                          description:
+                          'رقم الفاتورة: ${_bill.id} - اسم العميل : ${_bill.customerName} - اجمالي الفاتورة: ${_bill.total_price.toStringAsFixed(2)}',
+                          operationNumber: 0,
+                        );
+                         _removeBill(dialogContext, _bill.id, report);
+                        Navigator.of(dialogContext).pop(); // Close confirmation dialog
+                        Navigator.of(context).pop(); // Close bill details
+                      },
+                      child: const Text('حذف', style: TextStyle(color: Colors.red)),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('إلغاء'),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+          child: const Text('حذف', style: TextStyle(color: Colors.red)),
+        ),
+        TextButton(
+          onPressed: ()  {
+            // Navigator.defaultRouteName;
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => adminHomeResponsive(),));
+          },
+          child: const Text('إغلاق'),
+        ),
+      ],
+    );
+  }
+}
+
+Future<void> showBillDetailsDialog(BuildContext context, Bill bill) async {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return BillDetailsDialog(bill: bill);
+    },
+  );
+}

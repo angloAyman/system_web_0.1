@@ -32,7 +32,38 @@ class SupabaseVaultRepository implements VaultRepository {
 
   }
 
+  Future<Map<String, dynamic>?> getAuthenticatedUser() async {
+    final session = _client.auth.currentSession;
 
+    if (session != null) {
+      final user = session.user;
+      final response = await _client
+          .from('users')
+          .select('id, name, email')
+          .eq('id', user.id)
+          .single();
+
+      if (response != null) {
+        return response;
+      }
+    }
+
+    return null;
+  }
+
+
+  Future<List<Map<String, dynamic>>> getPaymentsByVaultId(String name) async {
+    final response = await _client
+        .from('paymentsOut')
+        .select('*')
+        .eq('vault_name', name);
+
+    if (response == null) {
+      throw Exception('Error fetching payments: ${response}');
+    }
+print(response);
+    return List<Map<String, dynamic>>.from(response);
+  }
 
 
   // جلب جميع الفواتير المرتبطة بالخزنة
@@ -100,7 +131,7 @@ class SupabaseVaultRepository implements VaultRepository {
 
   @override
   Future<void> deleteVault(String id) async {
-    final response = await _client.from('vaults').delete().eq('id', id).single();
+    final response = await _client.from('vaults').delete().eq('id', id).asStream();
 
     if (response == null) {
       throw Exception('Failed to delete vault: No response');
@@ -137,4 +168,123 @@ class SupabaseVaultRepository implements VaultRepository {
       throw Exception('Error updating vault balance: $e');
     }
   }
+
+  // Future<void> addPayment({
+  //   required String vaultId,
+  //   required int amount,
+  //   required String description,
+  //   required String timestamp,
+  // }) async {
+  //   final response = await _client.from('paymentsOut').insert({
+  //     'vault_id': vaultId,
+  //     'amount': amount,
+  //     'description': description,
+  //     'timestamp': timestamp,
+  //   });
+  //
+  //   if (response == null) {
+  //     throw Exception('Error adding payment: ${response}');
+  //   }
+  // }
+  Future<List<Map<String, dynamic>>> getAllVaults() async {
+    final response = await _client.from('vaults').select('id, name, balance');
+
+    if (response == null) {
+      throw Exception('Error fetching vaults: ${response}');
+    }
+    return List<Map<String, dynamic>>.from(response ?? []);
+  }
+
+  // Future<void> subtractFromVaultBalance({
+  //   required String vaultId,
+  //   required int amount,
+  //   required String description,
+  // }) async {
+  //   final response = await _client.rpc('paymentsOut', params: {
+  //     'vault_id': vaultId,
+  //     'amount': amount,
+  //     'description': description,
+  //   });
+  //
+  //   if (response == null) {
+  //     throw Exception('Error updating vault balance: ${response}');
+  //   }
+  // }
+
+  Future<void> updateVaultBalanceAndLogPayment({
+    required String vaultname,
+    required double newBalance,
+    required int amount,
+    required String description,
+    required String timestamp,
+  }) async {
+    // try {
+      // Start a transaction by updating the balance
+      final balanceUpdateResponse = await _client
+          .from('vaults')
+          .update({'balance': newBalance})
+          .eq('name', vaultname).asStream()
+          ;
+
+      if (balanceUpdateResponse == null) {
+        throw Exception('Error updating vault balance: ${balanceUpdateResponse}');
+      }
+
+      // Insert the payment log
+      // final paymentLogResponse = await _client
+      //     .from('paymentsOut')
+      //     .insert({
+      //   'vault_name': vaultname,
+      //   'amount': amount,
+      //   'description': description,
+      //   'timestamp': timestamp,
+      // })
+      //     ;
+      //
+      // if (paymentLogResponse == null) {
+      //   throw Exception('Error logging payment: ${paymentLogResponse}');
+      // }
+    }
+    // catch (e) {
+    //   // Re-throw the exception for error handling in the caller
+    //   throw Exception('Transaction failed: $e');
+    // }
+  // }
+
+
+  Future<double> getVaultBalance(String name) async {
+    final response = await _client
+        .from('vaults')
+        .select('balance')
+        .eq('name', name)
+        .single()
+        ;
+
+    if (response == null) {
+      throw Exception('Error fetching vault balance: ${response}');
+    }
+
+    return response['balance'] as double;
+  }
+
+
+  Future<void> subtractFromVaultBalance({
+  required String vaultname,
+  required String userName,
+  required int amount,
+  required String description,
+  required String timestamp,
+}) async {
+  final response = await _client.from('paymentsOut').insert({
+    'vault_name': vaultname,
+    'userName': userName,
+    'amount': amount,
+    'description': description,
+    'timestamp': timestamp,
+  });
+
+  // if (response == null) {
+  //   throw Exception('Error adding payment: ${response}');
+  // }
+}
 }

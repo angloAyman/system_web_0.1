@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:system/features/Vaults/data/models/vault_model.dart';
-import 'package:system/features/Vaults/data/repositories/supabase_vault_repository.dart';
+import 'package:system/Adminfeatures/Vaults/data/models/vault_model.dart';
+import 'package:system/Adminfeatures/Vaults/data/repositories/supabase_vault_repository.dart';
 
 Future<void> showAddVaultDialog(BuildContext context, void Function() refreshVaults) async {
   final TextEditingController nameController = TextEditingController();
