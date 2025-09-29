@@ -1,11 +1,14 @@
+import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:flutter/material.dart';
-import 'package:system/Adminfeatures/customer/data/model/normal_customer_model.dart';
-import 'package:system/Adminfeatures/customer/data/repository/normal_customer_repository.dart';
-import 'package:system/Adminfeatures/customer/presentation/widgets/NormalCustomerDialogs.dart';
+import 'package:system/features/customer/data/model/normal_customer_model.dart';
+import 'package:system/features/customer/data/repository/normal_customer_repository.dart';
+import 'package:system/features/customer/presentation/normal/AddNormalCustomerDialogs.dart';
 
 class NormalCustomerPage extends StatefulWidget {
   final String searchQuery;
-  const NormalCustomerPage({Key? key, required this.searchQuery}) : super(key: key);
+
+  const NormalCustomerPage({Key? key, required this.searchQuery})
+      : super(key: key);
 
   @override
   _NormalCustomerPageState createState() => _NormalCustomerPageState();
@@ -16,6 +19,9 @@ class _NormalCustomerPageState extends State<NormalCustomerPage> {
   late Future<List<normal_customers>> _customersFuture;
   List<normal_customers> _customers = [];
   List<normal_customers> _filteredCustomers = [];
+
+  final _verticalScrollController = ScrollController();
+  final _horizontalScrollController = ScrollController();
 
   @override
   void initState() {
@@ -34,9 +40,9 @@ class _NormalCustomerPageState extends State<NormalCustomerPage> {
       setState(() {
         _filteredCustomers = _customers
             .where((customer) =>
-        customer.name.contains(query) ||
-            customer.email.contains(query) ||
-            customer.phone.contains(query))
+                customer.name.contains(query) ||
+                customer.email.contains(query) ||
+                customer.phone.contains(query))
             .toList();
       });
     });
@@ -64,56 +70,102 @@ class _NormalCustomerPageState extends State<NormalCustomerPage> {
           _filterCustomers(widget.searchQuery);
 
           return Container(
-            alignment: AlignmentDirectional.topStart,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: DataTable(
-                columns: [
-                  DataColumn(label: Text('الاسم', style: TextStyle(fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text('الايميل', style: TextStyle(fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text('رقم الهاتف', style: TextStyle(fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text('رقم الهاتف الوتس', style: TextStyle(fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text('العنوان', style: TextStyle(fontWeight: FontWeight.bold))),
-                  DataColumn(label: Text('مهام', style: TextStyle(fontWeight: FontWeight.bold))),
-                ],
-                rows: _filteredCustomers.map((customer) {
-                  return DataRow(cells: [
-                    DataCell(Text(customer.name)),
-                    DataCell(Text(customer.email)),
-                    DataCell(Text(customer.phonecall)),
-                    DataCell(Text(customer.phone)),
-                    DataCell(Text(customer.address)),
-                    DataCell(
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () {
-                              NormalCustomerDialogs.showAddOrUpdateDialog(
-                                context: context,
-                                normalCustomer: customer,
-                                isBusiness: false,
-                                onSubmit: (name, email, phone, address,phonecall) => _updateCustomer(customer.id, name, email, phone, address,phonecall),
-                              );
-                            },
+              alignment: AlignmentDirectional.topStart,
+              // height: 300,
+              // width: 700,
+              child: AdaptiveScrollbar(
+                  sliderDefaultColor: Colors.grey.withOpacity(0.7),
+                  sliderActiveColor: Colors.grey,
+                  controller: _verticalScrollController,
+                  child: AdaptiveScrollbar(
+                      controller: _horizontalScrollController,
+                      position: ScrollbarPosition.bottom,
+                      underColor: Colors.blueGrey.withOpacity(0.3),
+                      sliderDefaultColor: Colors.grey.withOpacity(0.7),
+                      sliderActiveColor: Colors.grey,
+                      child: SingleChildScrollView(
+                        controller: _verticalScrollController,
+                        scrollDirection: Axis.vertical,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: DataTable(
+                            columns: [
+                              DataColumn(
+                                  label: Text('الاسم',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('الايميل',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('رقم الهاتف',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('رقم الهاتف الوتس',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('العنوان',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('مهام',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                            ],
+                            rows: _filteredCustomers.map((customer) {
+                              return DataRow(cells: [
+                                DataCell(Text(customer.name)),
+                                DataCell(Text(customer.email)),
+                                DataCell(Text(customer.phonecall)),
+                                DataCell(Text(customer.phone)),
+                                DataCell(Text(customer.address)),
+                                DataCell(
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.edit,
+                                            color: Colors.blue),
+                                        onPressed: () {
+                                          NormalCustomerDialogs
+                                              .showAddOrUpdateDialog(
+                                            context: context,
+                                            normalCustomer: customer,
+                                            isBusiness: false,
+                                            onSubmit: (name, email, phone,
+                                                    address, phonecall) =>
+                                                _updateCustomer(
+                                                    customer.id,
+                                                    name,
+                                                    email,
+                                                    phone,
+                                                    address,
+                                                    phonecall),
+                                          );
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.delete,
+                                            color: Colors.red),
+                                        onPressed: () {
+                                          NormalCustomerDialogs
+                                              .showDeleteConfirmation(
+                                            context: context,
+                                            onConfirm: () =>
+                                                _deleteCustomer(customer.id),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ]);
+                            }).toList(),
                           ),
-                          IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              NormalCustomerDialogs.showDeleteConfirmation(
-                                context: context,
-                                onConfirm: () => _deleteCustomer(customer.id),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ]);
-                }).toList(),
-              ),
-            ),
-          );
+                        ),
+                      ))));
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -121,7 +173,8 @@ class _NormalCustomerPageState extends State<NormalCustomerPage> {
           NormalCustomerDialogs.showAddOrUpdateDialog(
             context: context,
             isBusiness: false,
-            onSubmit: (name, email, phone, address, phonecall) => _addCustomer(name, email, phone, address,phonecall),
+            onSubmit: (name, email, phone, address, phonecall) =>
+                _addCustomer(name, email, phone, address, phonecall),
           );
         },
         child: Icon(Icons.add),
@@ -129,14 +182,28 @@ class _NormalCustomerPageState extends State<NormalCustomerPage> {
     );
   }
 
-  void _addCustomer(String name, String email, String phone, String address,String phonecall) async {
-    final newCustomer = normal_customers(id: '', name: name, email: email, phone: phone, address: address, phonecall: phonecall);
+  void _addCustomer(String name, String email, String phone, String address,
+      String phonecall) async {
+    final newCustomer = normal_customers(
+        id: '',
+        name: name,
+        email: email??"لم يتم الادخال",
+        phone: phone??"لم يتم الادخال",
+        address: address??"لم يتم الادخال",
+        phonecall: phonecall??"لم يتم الادخال");
     await _repository.addCustomer(newCustomer);
     _refreshCustomers();
   }
 
-  void _updateCustomer(String id, String name, String email, String phone, String address,String phonecall) async {
-    final updatedCustomer = normal_customers(id: id, name: name, email: email, phone: phone, address: address, phonecall: phonecall);
+  void _updateCustomer(String id, String name, String email, String phone,
+      String address, String phonecall) async {
+    final updatedCustomer = normal_customers(
+        id: id,
+        name: name,
+        email: email,
+        phone: phone,
+        address: address,
+        phonecall: phonecall);
     await _repository.updateCustomer(updatedCustomer);
     _refreshCustomers();
   }

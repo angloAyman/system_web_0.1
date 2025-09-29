@@ -12,4 +12,8 @@ class AppStrings  {
   static const String openInvoice = 'فاتورة مفتوحة';
   static const String noBills = 'لا توجد فواتير حالياً.';
 
+
+
+
+
 }

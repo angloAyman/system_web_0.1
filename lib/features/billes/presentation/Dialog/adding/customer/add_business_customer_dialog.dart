@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
-import 'package:system/Adminfeatures/customer/data/model/business_customer_model.dart';
+import 'package:system/features/billes/data/repositories/bill_repository.dart';
+import 'package:system/features/customer/data/model/business_customer_model.dart';
 
 Future<void> showAddBusinessCustomerDialog(
     BuildContext context, {
@@ -87,7 +87,7 @@ Future<void> showAddBusinessCustomerDialog(
                 _phoneController.text,
                 _personPhoneController.text,
                 _addressController.text,
-                _discountController.text,
+                // _discountController.text,
                 _personPhonecallController.text,
                 billRepository,
               );
@@ -110,7 +110,7 @@ void _addBusinessCustomer(
     String phone,
     String personPhone,
     String address,
-    String discount,
+    // String discount,
     String personphonecall,
     BillRepository billRepository,
     ) async {
@@ -122,7 +122,7 @@ void _addBusinessCustomer(
     phone: phone,
     personPhone: personPhone,
     address: address,
-    discount: discount,
+    // discount: discount,
     personphonecall: personphonecall,
   );
   await billRepository.addBusinessCustomer(newCustomer);

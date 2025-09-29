@@ -1,93 +1,11 @@
-// import 'package:flutter/material.dart';
-// import 'package:supabase_flutter/supabase_flutter.dart';
-//
-// class LoginTablePage extends StatefulWidget {
-//   @override
-//   _LoginTablePageState createState() => _LoginTablePageState();
-// }
-//
-// class _LoginTablePageState extends State<LoginTablePage> {
-//   final SupabaseClient supabase = Supabase.instance.client;
-//   List<Map<String, dynamic>> loginRecords = [];
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     _fetchLoginRecords();
-//   }
-//
-//   // Fetch the login records and user information
-//   Future<void> _fetchLoginRecords() async {
-//     final response = await supabase.from('logins').select();
-//
-//     if (response == null) {
-//       print("Error fetching login records: ${response}");
-//       return;
-//     }
-//
-//     List<Map<String, dynamic>> records = List<Map<String, dynamic>>.from(response);
-//
-//     // For each login record, fetch the username using the user_id
-//     for (var record in records) {
-//       final userResponse = await supabase
-//           .from('users') // Assuming 'users' is the table that stores user data
-//           .select('name')
-//           .eq('id', record['user_id'])
-//           .single();
-//
-//       if (userResponse != null) {
-//         record['name'] = userResponse['name']; // Add the username to the record
-//       } else {
-//         record['name'] = 'Unknown'; // In case the username is not found
-//       }
-//     }
-//
-//     setState(() {
-//       loginRecords = records;
-//     });
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Login Records'),
-//       ),
-//       body: loginRecords.isEmpty
-//           ? Center(child: CircularProgressIndicator()) // Show a loading spinner if no data
-//           : SingleChildScrollView(
-//         child: Center(
-//           child: DataTable(
-//             columns: const [
-//               // DataColumn(label: Text('User ID')),
-//               DataColumn(label: Text('اسم المستخدم')),
-//               DataColumn(label: Text('تسجيبل الدخول')),
-//               DataColumn(label: Text('تسجيل الخروج')),
-//             ],
-//             rows: loginRecords.map((record) {
-//               final loginTime = DateTime.parse(record['login_time']);
-//               final logoutTime = record['logout_time'] != null
-//                   ? DateTime.parse(record['logout_time'])
-//                   : null;
-//
-//               return DataRow(cells: [
-//                 // DataCell(Text(record['user_id'].toString())),
-//                 DataCell(Text(record['name'] ?? 'N/A')),
-//                 DataCell(Text(loginTime.toLocal().toString())),
-//                 DataCell(Text(logoutTime?.toLocal().toString() ?? 'Not Logged Out')),
-//               ]);
-//             }).toList(),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
+
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:system/Adminfeatures/auth/data/auth_service.dart'; // Import intl package
+import 'package:system/features/attendance/Presentation/newattendancepage.dart';
+import 'package:system/features/auth/data/auth_service.dart';
 
 class LoginTablePage extends StatefulWidget {
   @override
@@ -96,108 +14,193 @@ class LoginTablePage extends StatefulWidget {
 
 class _LoginTablePageState extends State<LoginTablePage> {
   final SupabaseClient supabase = Supabase.instance.client;
-  List<Map<String, dynamic>> loginRecords = [];
-  // final _authService = AuthService(authService: AuthService(Supabase.instance.client),); // Assuming you have an _authService to record logout time
   final _authService = AuthService(Supabase.instance.client);
+
+  Map<String, List<Map<String, dynamic>>> groupedRecords = {};
+  List<String> employeeNames = [];
+  bool isLoading = true;
+  String? selectedEmployee;
+  final TextEditingController searchController = TextEditingController();
+  StreamSubscription<List<Map<String, dynamic>>>? _loginsSubscription;
+
   @override
   void initState() {
     super.initState();
-    // WidgetsBinding.instance.addObserver(this); // Add observer to listen to lifecycle changes
     _fetchLoginRecords();
-  }
-
-  // Fetch the login records and user information
-  Future<void> _fetchLoginRecords() async {
-    final response = await supabase.from('logins').select();
-
-    if (response == null) {
-      print("Error fetching login records: ${response}");
-      return;
-    }
-
-    List<Map<String, dynamic>> records = List<Map<String, dynamic>>.from(response);
-
-    // For each login record, fetch the username using the user_id
-    for (var record in records) {
-      final userResponse = await supabase
-          .from('users') // Assuming 'users' is the table that stores user data
-          .select('name')
-          .eq('id', record['user_id'])
-          .single();
-
-      if (userResponse != null) {
-        record['name'] = userResponse['name']; // Add the username to the record
-      } else {
-        record['name'] = 'Unknown'; // In case the username is not found
-      }
-    }
-
-    setState(() {
-      loginRecords = records;
+    _loginsSubscription = supabase
+        .from('logins')
+        .stream(primaryKey: ['id'])
+        .listen((event) {
+      _fetchLoginRecords();
     });
   }
 
 
-
-  // Called when the app's lifecycle state changes
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
-      // Record logout time when the app is paused or about to be closed
-      _recordLogoutTime();
+  void dispose() {
+    _loginsSubscription?.cancel();
+    searchController.dispose();
+    super.dispose();
+  }
+
+
+  Future<void> _fetchLoginRecords() async {
+    if (!mounted) return; // 👈 تفادي setState بعد التخلص
+
+    setState(() => isLoading = true);
+
+    try {
+      final response = await supabase
+          .from('logins')
+          .select('id, login_time, logout_time, users(name),device')
+          .order('login_time', ascending: false);
+
+      if (!mounted) return; // 👈 مرة ثانية بعد await
+
+
+      List<Map<String, dynamic>> records = List<Map<String, dynamic>>.from(response);
+      Map<String, List<Map<String, dynamic>>> grouped = {};
+
+      for (var record in records) {
+        final loginDate = DateFormat('yyyy-MM-dd').format(DateTime.parse(record['login_time']));
+        grouped.putIfAbsent(loginDate, () => []).add(record);
+      }
+
+      // استخراج أسماء الموظفين مرة واحدة فقط
+      List<String> names = records
+          .map<String>((record) => record['users']?['name']?.toString() ?? 'غير معروف')
+          .toSet()
+          .toList();
+
+      if (!mounted) return; // 👈 تحقق للمرة الأخيرة قبل setState
+      setState(() {
+        groupedRecords = grouped;
+        employeeNames = names;
+        isLoading = false;
+      });
+    } catch (error) {
+      print("Error fetching login records: $error");
     }
   }
 
-  // Record the logout time for the user
-  Future<void> _recordLogoutTime() async {
-    // Assuming you have access to user ID
-    final userId = "id"; // Replace this with the actual user ID
-    await _authService.recordLogoutTime(userId); // Record the logout time
+  String calculateWorkHours(String loginTime, String? logoutTime) {
+    try {
+      final login = DateTime.parse(loginTime).toUtc();
+      if (logoutTime == null) return "قيد العمل";
+      final logout = DateTime.parse(logoutTime).toUtc();
+      final duration = logout.difference(login);
+      return "${duration.inHours.toString().padLeft(2, '0')}:${duration.inMinutes.remainder(60).toString().padLeft(2, '0')}";
+    } catch (e) {
+      print("Error in calculateWorkHours: $e");
+      return "خطأ";
+    }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('حضور و اصراف'),
-      ),
-      body: loginRecords.isEmpty
-          ? Center(child: CircularProgressIndicator()) // Show a loading spinner if no data
-          : SingleChildScrollView(
-        child: Center(
-          child: DataTable(
-            columns: const [
-              // DataColumn(label: Text('User ID')),
-              DataColumn(label: Text('اسم المستخدم')),
-              DataColumn(label: Text('تسجيبل الدخول')),
-              DataColumn(label: Text('تسجيل الخروج')),
-            ],
-            rows: loginRecords.map((record) {
-              final loginTime = DateTime.parse(record['login_time']);
-              final logoutTime = record['logout_time'] != null
-                  ? DateTime.parse(record['logout_time'])
-                  : null;
-
-              // Format the date and time
-              String formattedLoginDate = DateFormat('dd:MM:yy').format(loginTime);
-              String formattedLoginTime = DateFormat('HH:mm:ss').format(loginTime);
-
-              String formattedLogoutDate = logoutTime != null
-                  ? DateFormat('dd:MM:yy').format(logoutTime)
-                  : 'Not Logged Out';
-              String formattedLogoutTime = logoutTime != null
-                  ? DateFormat('HH:mm:ss').format(logoutTime)
-                  : 'Not Logged Out';
-
-              return DataRow(cells: [
-                // DataCell(Text(record['user_id'].toString())),
-                DataCell(Text(record['name'] ?? 'N/A')),
-                DataCell(Text('$formattedLoginDate\n$formattedLoginTime')), // Display Date and Time for login
-                DataCell(Text('$formattedLogoutDate\n$formattedLogoutTime')), // Display Date and Time for logout
-              ]);
-            }).toList(),
+        title: Text('حضور و انصراف'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AttendancePage2()),
+              );
+            },
+            icon: Icon(Icons.home),
           ),
-        ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(12),
+            child: Autocomplete<String>(
+              optionsBuilder: (TextEditingValue textEditingValue) {
+                if (textEditingValue.text.isEmpty) return const Iterable<String>.empty();
+                return employeeNames.where(
+                      (name) => name.toLowerCase().contains(textEditingValue.text.toLowerCase()),
+                );
+              },
+              onSelected: (String selection) {
+                setState(() {
+                  selectedEmployee = selection;
+                });
+              },
+              fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
+                searchController.text = controller.text;
+                return TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  onEditingComplete: onEditingComplete,
+                  decoration: InputDecoration(
+                    labelText: "بحث عن موظف",
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(),
+                  ),
+                );
+              },
+            ),
+          ),
+          Expanded(
+            child: isLoading
+                ? Center(child: CircularProgressIndicator())
+                : ListView(
+              children: groupedRecords.entries.map((entry) {
+                var filteredRecords = entry.value.where(
+                      (record) => selectedEmployee == null || record['users']['name'] == selectedEmployee,
+                ).toList();
+
+                if (filteredRecords.isEmpty) return SizedBox.shrink();
+
+                return Card(
+                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  child: ExpansionTile(
+                    title: Text('التاريخ: ${entry.key}', style: TextStyle(fontWeight: FontWeight.bold)),
+                    children: [
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: DataTable(
+                          columns: [
+                            DataColumn(label: Text('اسم المستخدم')),
+                            DataColumn(label: Text('تسجيل الدخول')),
+                            DataColumn(label: Text('تسجيل الخروج')),
+                            DataColumn(label: Text('عدد ساعات العمل')),
+                            DataColumn(label: Text('تم التسجيل عبر')),
+
+                          ],
+                          rows: filteredRecords.map((record) {
+                            final loginTime = record['login_time'];
+                            final logoutTime = record['logout_time'];
+                            return DataRow(cells: [
+                              DataCell(Text(record['users']['name'] ?? 'غير معروف')),
+                              DataCell(Text(DateFormat('hh:mm a').format(DateTime.parse(loginTime))
+
+                              )),
+                              DataCell(Text(
+                                logoutTime != null
+                                    ? DateFormat('hh:mm a').format(DateTime.parse(logoutTime))
+
+
+                                    : 'لم يتم تسجيل الخروج',
+                              )),
+                              DataCell(Text(calculateWorkHours(loginTime, logoutTime))),
+                              DataCell(Text(record['device'] ?? 'غير معروف')),
+                            ]);
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
+

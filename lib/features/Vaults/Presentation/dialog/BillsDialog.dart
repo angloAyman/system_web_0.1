@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:system/Adminfeatures/Vaults/data/repositories/supabase_vault_repository.dart';
+import 'package:system/features/Vaults/data/repositories/supabase_vault_repository.dart';
 
 class BillsDialog extends StatefulWidget {
   final String vaultId;
@@ -40,7 +40,7 @@ class _BillsDialogState extends State<BillsDialog> {
       _filteredBills = bills; // Initially, show all bills
     });
     // Update the vault balance after loading the bills
-    await _updateVaultBalance();
+    // await _updateVaultBalance();
   }
 
   // Filter the bills based on the search input and selected filter
@@ -61,19 +61,19 @@ class _BillsDialogState extends State<BillsDialog> {
   }
 
   // Update the vault balance based on total payments from the bills
-  Future<void> _updateVaultBalance() async {
-    final totalPayment = _calculateTotalPayment();
-
-    try {
-      // Call the method in the repository to update the vault balance
-      await _vaultRepository.updateVaultBalance(widget.vaultId);
-
-      // Optionally, you can display a success message or update other UI elements.
-      print('Vault balance updated successfully.');
-    } catch (e) {
-      print('Error updating vault balance: $e');
-    }
-  }
+  // Future<void> _updateVaultBalance() async {
+  //   final totalPayment = _calculateTotalPayment();
+  //
+  //   try {
+  //     // Call the method in the repository to update the vault balance
+  //     await _vaultRepository.updateVaultBalance(widget.vaultId);
+  //
+  //     // Optionally, you can display a success message or update other UI elements.
+  //     print('Vault balance updated successfully.');
+  //   } catch (e) {
+  //     print('Error updating vault balance: $e');
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

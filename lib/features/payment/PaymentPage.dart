@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:system/features/billes/data/models/bill_model.dart';
 import 'package:system/features/billes/data/repositories/bill_repository.dart';
-import 'package:system/features/billes/presentation/payment/AddPaymentPage.dart';
-import 'package:system/features/billes/presentation/payment/pdf.dart';
+import 'package:system/features/billes/presentation/Dialog/adding/bill/AddbillPaymentPage.dart';
+import 'package:system/features/payment/pdf.dart';
 
 class PaymentPage extends StatefulWidget {
   const PaymentPage({Key? key}) : super(key: key);
@@ -37,6 +37,7 @@ class _PaymentPageState extends State<PaymentPage> {
   @override
   void dispose() {
     _searchController.dispose();
+
     super.dispose();
   }
 
@@ -102,23 +103,37 @@ class _PaymentPageState extends State<PaymentPage> {
         final matchesStatus = _selectedStatus == "اجمالي الفواتير" ||
             (_selectedStatus == "آجل" && bill.status == "آجل") ||
             (_selectedStatus == "تم الدفع" && bill.status == "تم الدفع") ||
-            (_selectedStatus == "فاتورة مفتوحة" && bill.status == "فاتورة مفتوحة");
+            (_selectedStatus == "فاتورة مفتوحة" &&
+                bill.status == "فاتورة مفتوحة");
 
         return matchesSearch && matchesStatus;
       }).toList();
     });
   }
 
-  void _showAddPaymentDialog(int billId, String customerName,DateTime billDate,double total_price,) {
-    showDialog(
+
+  // اضافة دفع علي فاتورة
+  Future<bool> _showAddPaymentDialog(
+    int billId,
+      double payment,
+    String customerName,
+    DateTime billDate,
+      double total_price,
+  ) async {
+    return await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
-        return AddPaymentDialog(billId: billId, customerName: customerName,billDate:billDate,total_price:total_price,);
+        return AddPaymentDialog(
+          billId: billId,
+          payment: payment,
+          customerName: customerName,
+          billDate: billDate,
+          total_price: total_price,
+        );
       },
-    );
+    )??
+    false;
   }
-
-
 
   Future<List<Map<String, dynamic>>> _fetchPayments(int billId) async {
     final response = await Supabase.instance.client
@@ -134,12 +149,39 @@ class _PaymentPageState extends State<PaymentPage> {
     return List<Map<String, dynamic>>.from(response);
   }
 
-  void _showPaymentDetailsDialog(int billId, String customerName,DateTime billDate,double total_price) async {
+
+  Future<Bill> _fetchBill(int billId) async {
     try {
+      final response = await Supabase.instance.client
+          .from('bills')
+          .select('*, bill_items(*)')
+          .eq('id', billId)
+          .single(); // ✅ جلب عنصر واحد فقط
+
+      if (response == null) {
+        throw Exception('لم يتم العثور على الفاتورة.');
+      }
+
+      print("بيانات الفاتورة: $response"); // ✅ طباعة البيانات للتحقق
+
+      return Bill.fromJson(response); // ✅ تأكد من أن `Bill` يحتوي على `fromJson`
+    } catch (e) {
+      print("خطأ أثناء جلب الفاتورة: $e"); // ✅ طباعة أي خطأ يحدث
+      throw Exception("حدث خطأ أثناء جلب الفاتورة.");
+    }
+  }
+
+
+  void _showPaymentDetailsDialog(int billId, String customerName,
+      DateTime billDate, double total_price) async {
+    try {
+      final bill = await _fetchBill(billId);
+
       final payments = await _fetchPayments(billId);
-      final totalPayments = payments.fold(0.0, (sum, payment) => sum + (payment['payment'] ?? 0.0));
+      final totalPayments = payments.fold(
+          0.0, (sum, payment) => sum + (payment['payment'] ?? 0.0));
       // حساب المبلغ المتبقي
-      final remainingAmount = total_price - totalPayments;
+      final double remainingAmount = (total_price ?? 0.0).toDouble() - (totalPayments ?? 0.0).toDouble();
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -148,33 +190,37 @@ class _PaymentPageState extends State<PaymentPage> {
             content: payments.isEmpty
                 ? const Text('لا توجد مدفوعات لهذه الفاتورة.')
                 : SizedBox(
-              width: double.maxFinite,
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: payments.length,
-                itemBuilder: (context, index) {
-                  final payment = payments[index];
-                  final userName = payment['users']['name'] ?? 'غير معروف';
-                  return ListTile(
-                    title: Text('المبلغ: ${payment['payment']}'),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('التاريخ: ${DateTime.parse(payment['date']).toLocal().toString().split(' ')[0]}'),
-                        Text('المستخدم: $userName'),
-                      ],
-                    ),
-                    trailing: ElevatedButton.icon(
-                      icon: Icon(Icons.picture_as_pdf),
-                      label: Text('استخراج PDF'),
-                      onPressed: () async {
-                        await createPDF(payment, customerName, billDate, total_price,totalPayments,remainingAmount);
+                    width: double.maxFinite,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: payments.length,
+                      itemBuilder: (context, index) {
+                        final payment = payments[index];
+                        final userName =
+                            payment['users']['name'] ?? 'غير معروف';
+                        return ListTile(
+                          title: Text('المبلغ: ${payment['payment']}'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                  'التاريخ: ${DateTime.parse(payment['date']).toLocal().toString().split(' ')[0]}'),
+                              Text('المستخدم: $userName'),
+                            ],
+                          ),
+                          trailing: ElevatedButton.icon(
+                            icon: Icon(Icons.picture_as_pdf),
+                            label: Text('استخراج PDF'),
+                            onPressed: () async {
+
+                              await createPDF( context,bill,payment, customerName, billDate,
+                                  total_price, totalPayments, remainingAmount);
+                            },
+                          ),
+                        );
                       },
                     ),
-                  );
-                },
-              ),
-            ),
+                  ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -190,8 +236,6 @@ class _PaymentPageState extends State<PaymentPage> {
       );
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -227,14 +271,34 @@ class _PaymentPageState extends State<PaymentPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildCard('اجمالي الفواتير', '$_totalBills', Icons.description, Colors.blue,
-                    _selectedStatus == "اجمالي الفواتير", () => _filterBills("اجمالي الفواتير")),
-                _buildCard('تم الدفع', '$_paidBills', Icons.check_circle, Colors.green,
-                    _selectedStatus == "تم الدفع", () => _filterBills("تم الدفع")),
-                _buildCard('آجل', '$_deferredBillsCount', Icons.access_time, Colors.orange,
-                    _selectedStatus == "آجل", () => _filterBills("آجل")),
-                _buildCard('فاتورة مفتوحة', '$_openBillsCount', Icons.folder_open, Colors.red,
-                    _selectedStatus == "فاتورة مفتوحة", () => _filterBills("فاتورة مفتوحة")),
+                _buildCard(
+                    'اجمالي الفواتير',
+                    '$_totalBills',
+                    Icons.description,
+                    Colors.blue,
+                    _selectedStatus == "اجمالي الفواتير",
+                    () => _filterBills("اجمالي الفواتير")),
+                _buildCard(
+                    'تم الدفع',
+                    '$_paidBills',
+                    Icons.check_circle,
+                    Colors.green,
+                    _selectedStatus == "تم الدفع",
+                    () => _filterBills("تم الدفع")),
+                _buildCard(
+                    'آجل',
+                    '$_deferredBillsCount',
+                    Icons.access_time,
+                    Colors.orange,
+                    _selectedStatus == "آجل",
+                    () => _filterBills("آجل")),
+                _buildCard(
+                    'فاتورة مفتوحة',
+                    '$_openBillsCount',
+                    Icons.folder_open,
+                    Colors.red,
+                    _selectedStatus == "فاتورة مفتوحة",
+                    () => _filterBills("فاتورة مفتوحة")),
               ],
             ),
           ),
@@ -242,48 +306,70 @@ class _PaymentPageState extends State<PaymentPage> {
           Expanded(
             child: _filteredBills.isEmpty
                 ? const Center(
-              child: Text(
-                'لا توجد فواتير متاحة للفلتر المحدد.',
-                style: TextStyle(fontSize: 18),
-              ),
-            )
-                : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ListView.builder(
-                itemCount: _filteredBills.length,
-                itemBuilder: (context, index) {
-                  final bill = _filteredBills[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: ListTile(
-                      title: Text('رقم الفاتورة: ${bill.id}'),
-                      subtitle: Text('العميل: ${bill.customerName}'),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () =>
-                                _showAddPaymentDialog(bill.id as int, bill.customerName,bill.date as DateTime,bill.total_price as double),
-                            child: const Text('اضافة الدفع'),
-                          ),
-                          SizedBox(width: 10,),
-                          ElevatedButton(
-                            onPressed: () => _showPaymentDetailsDialog(bill.id as int,bill.customerName,bill.date as DateTime,bill.total_price as double),
-                            child: const Text('تفاصيل المدفوعات'), ),
-                        ],
-                      ),
+                    child: Text(
+                      'لا توجد فواتير متاحة للفلتر المحدد.',
+                      style: TextStyle(fontSize: 18),
                     ),
-                  );
-                },
-              ),
-            ),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: ListView.builder(
+                      itemCount: _filteredBills.length,
+                      itemBuilder: (context, index) {
+                        final bill = _filteredBills[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: ListTile(
+                            title: Text('رقم الفاتورة: ${bill.id}'),
+                            subtitle: Text('العميل: ${bill.customerName}'),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    bool result = await _showAddPaymentDialog(
+                                        bill.id,
+                                        bill.payment,
+                                        bill.customerName,
+                                        bill.date,
+                                        bill.total_price);
+
+                                    if (result) {
+                                      setState(
+                                          () async {
+                                            _loadBillCounts();
+                                          }); // Refresh UI only after async work is completed
+                                    }
+                                  },
+                                  child: const Text('اضافة الدفع'),
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => _showPaymentDetailsDialog(
+                                      bill.id,
+                                      bill.customerName,
+                                      bill.date as DateTime,
+                                      bill.total_price),
+                                  child: const Text(
+                                      ' تفاصيل المدفوعات و الايصالات'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCard(String title, String count, IconData icon, Color color, bool isSelected, VoidCallback onTap) {
+  Widget _buildCard(String title, String count, IconData icon, Color color,
+      bool isSelected, VoidCallback onTap) {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -298,12 +384,14 @@ class _PaymentPageState extends State<PaymentPage> {
                 const SizedBox(height: 8),
                 Text(
                   title,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color),
+                  style: TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold, color: color),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   count,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color),
+                  style: TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.bold, color: color),
                 ),
               ],
             ),

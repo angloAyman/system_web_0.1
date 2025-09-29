@@ -1,42 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:system/core/themes/AppColors/them_constants.dart';
-import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
-import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
-import 'package:system/Adminfeatures/billes/presentation/Dialog/adding/customer/add_business_customer_dialog.dart';
-import 'package:system/Adminfeatures/billes/presentation/Dialog/adding/customer/add_customer_dialog.dart';
-import 'package:system/Adminfeatures/billes/presentation/Dialog/adding/item/showAddItemDialog.dart';
-import 'package:system/Adminfeatures/billes/presentation/Dialog/details-editing-pdf/item/showEditItemDialog.dart';
-import 'package:system/Adminfeatures/customer/data/model/business_customer_model.dart';
-import 'package:system/Adminfeatures/report/data/model/report_model.dart';
+import 'package:system/features/billes/data/models/bill_model.dart';
+import 'package:system/features/billes/data/repositories/bill_repository.dart';
+import 'package:system/features/billes/presentation/Dialog/adding/bill/widgets/business_customer_form.dart';
+import 'package:system/features/billes/presentation/Dialog/adding/bill/widgets/normal_customer_form.dart';
+import 'package:system/features/billes/presentation/Dialog/adding/item/showAddItemDialog.dart';
+import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/item/showEditItemDialog.dart';
+import 'package:system/features/customer/data/model/business_customer_model.dart';
+import 'package:system/features/customer/data/model/normal_customer_model.dart';
+import 'package:system/features/customer/data/repository/business_customer_repository.dart';
+import 'package:system/features/customer/data/repository/normal_customer_repository.dart';
+import 'package:system/features/report/data/model/report_model.dart';
+import 'package:uuid/uuid.dart';
 
 Future<void> showAddBillDialog({
   required BuildContext context,
-  required Function(Bill, Payment, Report) onAddBill,
+  required Function(Bill, Payment, Report , Report ) onAddBill,
 }) async {
+  final BusinessCustomerRepository _businesscustomerRepository = BusinessCustomerRepository();
+  final NormalCustomerRepository _normalcustomerRepository = NormalCustomerRepository();
+  final BillRepository billRepository = BillRepository();
+
   final TextEditingController customerNameController = TextEditingController();
   final TextEditingController paymentController = TextEditingController();
 
   final TextEditingController dateController = TextEditingController();
-  DateTime? selectedDate; // To hold the selected date
+// To hold the selected date
 
   final List<BillItem> items = [];
-  final BillRepository billRepository = BillRepository();
   String _selectedPaymentStatus = "تم الدفع"; // default status
   double _totalPrice = 0.0; // Initialize total price
+
   List<String> normalCustomerNames = [];
   List<String> businesscustomernames = [];
-  bool customerExists = false;
 
   List<Map<String, String>> vaults = []; // Holds vaults fetched from Supabase
   String? selectedVaultId; // Holds the selected vault ID
 
   String _selectedCustomerType = "عميل عادي"; // النوع الافتراضي
+// النوع الافتراضي
+  bool customerExists = false;
+
 
   // Fetch Normalcustomer names
   await billRepository.getNormalCustomerNames().then((normal_customer_names) {
     normalCustomerNames = normal_customer_names;
   });
+
   // Fetch businesscustomer names
   await billRepository
       .getBusinessCustomerNames()
@@ -49,35 +59,25 @@ Future<void> showAddBillDialog({
     vaults = fetchedVaults;
   });
 
-
   double calculateTotalPrice({
-    required double amount,
-    required double pricePerUnit,
-    required double quantity,
-    required double discount,
+    required double total_Item_price,
   }) {
-    // Calculate the subtotal
-    double subtotal = amount * pricePerUnit * quantity;
-
-    // Calculate the discount amount
-    double discountAmount = subtotal * (discount / 100);
-
-    // Calculate the total price after applying the discount
-    double totalPrice = subtotal - discountAmount;
-
+    double totalPrice =total_Item_price;
     return totalPrice;
   }
+
+
+
 
   void addItemCallback(BillItem item) {
     items.add(item);
     // Update total price whenever a new item is added
-    _totalPrice = items.fold(0.0, (sum, item) {
-      return sum + calculateTotalPrice(
-        amount: item.amount,
-        pricePerUnit: item.price_per_unit,
-        quantity: item.quantity,
-        discount: item.discount,
-      );
+    _totalPrice = items.fold(0, (sum, item) {
+      return sum +
+          calculateTotalPrice(
+
+            total_Item_price: item.total_Item_price,
+          );
     });
   }
 
@@ -107,6 +107,7 @@ Future<void> showAddBillDialog({
     }
   }
 
+
   // Function to check if the customer exists after adding a new one
   void _updateCustomerExistence(String customerName) {
     if (_selectedCustomerType == "عميل عادي") {
@@ -119,20 +120,44 @@ Future<void> showAddBillDialog({
     ;
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
+
+
+  void _addCustomer(String name, String personName, String email, String phone,
+      String personPhone, String address, String personphonecall) async {
+    final newCustomer = business_customers(
+      id: '',
+      name: name,
+      personName: personName,
+      email: email.isNotEmpty ? email : "لم يتم الادخال",
+      phone: phone.isNotEmpty ? phone : "لم يتم الادخال",
+      personPhone: personPhone.isNotEmpty ? personPhone : "لم يتم الادخال",
+      address: address.isNotEmpty ? address : "لم يتم الادخال",
+      personphonecall:personphonecall.isNotEmpty ? personphonecall : "لم يتم الادخال",
     );
-    if (picked != null) {
-      selectedDate = picked; // Save the selected date
-      dateController.text =
-      "${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}"; // Format as DD/MM/YYYY
-    }
+
+    await _businesscustomerRepository.addCustomer(newCustomer);
+    await billRepository.getBusinessCustomerNames().then((business_customer_names) {
+      businesscustomernames = business_customer_names;
+    });
+    // _refreshCustomers(); // Refresh the customer list after adding a new customer
   }
 
+
+  void _addNormalCustomer(String name, String email, String phone, String address,
+      String phonecall) async {
+    final newCustomer = normal_customers(
+        id: '',
+        name: name,
+        email: email??"لم يتم الادخال",
+        phone: phone??"لم يتم الادخال",
+        address: address??"لم يتم الادخال",
+        phonecall: phonecall??"لم يتم الادخال");
+    await _normalcustomerRepository.addCustomer(newCustomer);
+    await billRepository.getNormalCustomerNames().then((normal_customer_names) {
+      normalCustomerNames = normal_customer_names;
+    });
+    // _refreshCustomers();
+  }
 
   DateTime? _parseDate(String input) {
     try {
@@ -148,7 +173,6 @@ Future<void> showAddBillDialog({
     }
     return null; // Return null if parsing fails
   }
-
 
 
 
@@ -193,146 +217,36 @@ Future<void> showAddBillDialog({
                 ),
                 SizedBox(height: 16), // Spacing below the toggle buttons
                 Text(
-                    '------------------------------ انشاء فاتورة جديدة ------------------------------', style: TextStyle(color: Colors.blue),),
+                  '------------------------------------- انشاء فاتورة جديدة -------------------------------------',
+                  style: TextStyle(color: Colors.blue),
+                ),
               ],
             ),
             content: SingleChildScrollView(
               child: Column(
                 children: [
                   if (_selectedCustomerType == "عميل عادي")
-                    Container(
-                      padding: EdgeInsets.all(12.0),
-                      decoration: BoxDecoration(
-                        color:AppBarTheme.of(context).surfaceTintColor,
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TextField(
-                            controller: customerNameController,
-                            decoration: InputDecoration(
-                              labelText: 'أسم العميل',
-                            ),
-                            onChanged: (value) {
-                              setDialogState(() {
-                                _updateCustomerExistence(value);
-                              });
-                            },
-                          ),
-                          SizedBox(height: 5),
-                          if (customerExists)
-                            Text(
-                              'العميل موجود بالفعل',
-                              style: TextStyle(color: Colors.green),
-                            )
-                          else if (customerNameController.text.isNotEmpty)
-                            Text(
-                              'العميل ليس موجود',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          SizedBox(height: 5),
-                          if (!customerExists)
-                            SafeArea(
-                              child: TextButton(
-                                onPressed: () {
-                                  showAddNormalcustomerDialog(
-                                    context,
-                                    onAdd: () {
-                                      billRepository
-                                          .getNormalCustomerNames()
-                                          .then((names) {
-                                        normalCustomerNames = names;
-                                        setDialogState(() {
-                                          _updateCustomerExistence(
-                                              customerNameController.text);
-                                        });
-                                      });
-                                    },
-                                  );
-                                },
-                                child: Text('اضافة عميل جديد'),
-                              ),
-                            ),
-                          TextField(
-                            controller: dateController,
-                            readOnly: true, // Prevent manual input
-                            decoration: InputDecoration(
-                              labelText: 'التاريخ (يوم/شهر/سنة)',
-                              suffixIcon: Icon(Icons.calendar_today), // Add a calendar icon
-                            ),
-                            onTap: () => _selectDate(context), // Show the date picker on tap
-                          )
-                        ],
-                      ),
+                    NormalCustomerForm(
+                      customerNameController: customerNameController,
+                      dateController: dateController,
+                      customerExists: customerExists,
+                      normalCustomerNames: normalCustomerNames,
+                      updateCustomerExistence: _updateCustomerExistence,
+                      addNormalCustomer: _addNormalCustomer,
+                      setDialogState: setDialogState,
                     ),
+
                   if (_selectedCustomerType == "عميل تجاري")
-                    Container(
-                      padding: EdgeInsets.all(12.0),
-                      decoration: BoxDecoration(
-                        color: AppBarTheme.of(context).surfaceTintColor,
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TextField(
-                            controller: customerNameController,
-                            decoration: InputDecoration(
-                              labelText: 'أسم الشركة',
-                            ),
-                            onChanged: (value) {
-                              setDialogState(() {
-                                _updateCustomerExistence(value);
-                              });
-                            },
-                          ),
-                          SizedBox(height: 5),
-                          if (customerExists)
-                            Text(
-                              'العميل موجود بالفعل',
-                              style: TextStyle(color: Colors.green),
-                            )
-                          else if (customerNameController.text.isNotEmpty)
-                            Text(
-                              'العميل ليس موجود',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          SizedBox(height: 5),
-                          if (!customerExists)
-                            SafeArea(
-                              child: TextButton(
-                                onPressed: () {
-                                  showAddBusinessCustomerDialog(
-                                    context,
-                                    onAdd: () {
-                                      billRepository
-                                          .getBusinessCustomerNames()
-                                          .then((names) {
-                                        businesscustomernames = names;
-                                        setDialogState(() {
-                                          _updateCustomerExistence(
-                                              customerNameController.text);
-                                        });
-                                      });
-                                    },
-                                  );
-                                },
-                                child: Text('اضافة عميل تجاري جديد'),
-                              ),
-                            ),
-                          TextField(
-                            controller: dateController,
-                            readOnly: true, // Prevent manual input
-                            decoration: InputDecoration(
-                              labelText: 'التاريخ (يوم/شهر/سنة)',
-                              suffixIcon: Icon(Icons.calendar_today), // Add a calendar icon
-                            ),
-                            onTap: () => _selectDate(context), // Show the date picker on tap
-                          )
-                        ],
-                      ),
+                    BusinessCustomerForm(
+                      customerNameController: customerNameController,
+                      dateController: dateController,
+                      customerExists: customerExists,
+                      businessCustomerNames: businesscustomernames,
+                      updateCustomerExistence: _updateCustomerExistence,
+                      addBusinessCustomer: _addCustomer,
+                      setDialogState: setDialogState,
                     ),
+
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
@@ -349,7 +263,9 @@ Future<void> showAddBillDialog({
                   ),
                   if (items.isNotEmpty) ...[
                     Text('عناصر الفاتورة:',
-                        style: TextStyle(fontWeight: FontWeight.bold,)),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        )),
                     Table(
                       border: TableBorder.all(),
                       columnWidths: {
@@ -362,59 +278,66 @@ Future<void> showAddBillDialog({
                         6: FlexColumnWidth(2),
                         7: FlexColumnWidth(2),
                         8: FlexColumnWidth(3), // العمود الجديد
+                        9: FlexColumnWidth(3), // العمود الجديد
                       },
                       children: [
                         TableRow(
                           children: [
-                            // 1- الفئة / الفئة الفرعية
+                            // 0- الفئة / الفئة الفرعية
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text('الفئة / الفئة الفرعية',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold)),
                             ),
-                            // 2- الوصف
+                            // 1- الوصف
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text('الوصف داخل الفاتورة',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold)),
                             ),
-                            // 3- سعر الوحدة
+                            // 2- سعر الوحدة
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text('سعر الوحدة',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold)),
                             ),
-                            // 4- عدد الوحدات
+                            // 3- عدد الوحدات
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text('عدد الوحدات',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold)),
                             ),
-
-                            // 5- سعر القطعة
+                            // 4- سعر القطعة
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text('السعر القطعة',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold)),
                             ),
-                            // 6- العدد
+                            // 5- العدد
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text('العدد',
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold)),
                             ),
-                            // 7- نسبة الخصم
+                            // 6- نسبة الخصم
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text('نسبة الخصم',
                                   style:
-                                  TextStyle(fontWeight: FontWeight.bold)),
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                            ),
+                            // 7- نسبة الخصم
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text('نوع الخصم',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
                             ),
                             // 8- الإجمالي
                             Padding(
@@ -473,21 +396,19 @@ Future<void> showAddBillDialog({
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text('${item.discount}'),
                               ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text('${item.discountType}'),
+                          ),
 
                               Padding(
-                              padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                          calculateTotalPrice(
-                          amount: item.amount,
-                          pricePerUnit: item.price_per_unit,
-                          quantity: item.quantity,
-                          discount: item.discount,
-                          ) .toString(),
-                          style: TextStyle(fontSize: 16.0),
-                          ),
-                          ),
+                                padding: const EdgeInsets.all(6.0),
+                                child:
+                                Text('${item.total_Item_price}'),
+                              ),
 
-                          //9- الإجراءات
+
+                              //9- الإجراءات
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Row(
@@ -499,7 +420,7 @@ Future<void> showAddBillDialog({
                                         showEditItemDialog(
                                             item: item,
                                             context: context,
-                                            onUpdateItem: (updatedItem) {
+                                            onUpdateItem: (updatedItem,) {
                                               setDialogState(() {
                                                 int index = items.indexWhere(
                                                     (i) => i == item);
@@ -511,8 +432,7 @@ Future<void> showAddBillDialog({
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
                                           SnackBar(
-                                              content: Text(
-                                                  'Edit clicked for ${item.categoryName}')),
+                                              content: Text('Edit clicked for ${item.categoryName}')),
                                         );
                                       },
                                     ),
@@ -540,16 +460,12 @@ Future<void> showAddBillDialog({
                   ],
                   Divider(),
                   Text(
-                    'الإجمالي: L.E ${
-                        items.fold(0.0, (sum, item) {
-                          return sum + calculateTotalPrice(
-                            amount: item.amount,
-                            pricePerUnit: item.price_per_unit,
-                            quantity: item.quantity,
-                            discount: item.discount,
+                    'الإجمالي: L.E ${items.fold(0.0, (sum, item) {
+                      return sum +
+                          calculateTotalPrice(
+                            total_Item_price: item.total_Item_price,
                           );
-                        })
-                    }',
+                    })}',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 20),
@@ -570,7 +486,7 @@ Future<void> showAddBillDialog({
                           onChanged: (value) {
                             setDialogState(() {
                               final paymentAmount =
-                                  double.tryParse(value) ?? 0.0;
+                                  int.tryParse(value) ?? 0;
 
                               if (_totalPrice == paymentAmount) {
                                 _selectedPaymentStatus = "تم الدفع";
@@ -582,9 +498,16 @@ Future<void> showAddBillDialog({
                             });
                           },
                         ),
+
                         DropdownButtonFormField<String>(
                           value: selectedVaultId,
-                          hint: Text('اختر الخزنة',style: TextStyle(color: AppBarTheme.of(context).titleTextStyle?.color,),),
+                          hint: Text(
+                            'اختر الخزنة',
+                            style: TextStyle(
+                              color:
+                                  AppBarTheme.of(context).titleTextStyle?.color,
+                            ),
+                          ),
                           onChanged: (value) {
                             setDialogState(() {
                               selectedVaultId = value;
@@ -646,75 +569,101 @@ Future<void> showAddBillDialog({
                     onPressed: () => Navigator.of(context).pop(),
                     child: Text('الغاء'),
                   ),
-
                   TextButton(
                     onPressed: customerExists
                         ? () async {
-                      final user = Supabase.instance.client.auth.currentUser;
-                      if (user != null) {
-                        // Parse the date using custom parsing logic
-                        final parsedDate = dateController.text.isNotEmpty
-                            ? _parseDate(dateController.text)
-                            : null;
+                            final user =
+                                Supabase.instance.client.auth.currentUser;
+                            if (user != null) {
+                              // Parse the date using custom parsing logic
+                              final parsedDate = dateController.text.isNotEmpty
+                                  ? _parseDate(dateController.text)
+                                  : null;
 
-                        // Handle null date case
-                        if (parsedDate == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Invalid date format. Please use DD/MM/YYYY.'),
-                            ),
-                          );
-                          return; // Exit early if the date is invalid
-                        }
+                              // Handle null date case
+                              if (parsedDate == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                        'Invalid date format. Please use DD/MM/YYYY.'),
+                                  ),
+                                );
+                                return; // Exit early if the date is invalid
+                              }
 
-                        final bill = Bill(
-                          status: _selectedPaymentStatus,
-                          id: 0,
-                          userId: user.id,
-                          customerName: customerNameController.text,
-                          date: parsedDate, // Use parsed date
-                          items: items,
-                          payment: double.parse(paymentController.text),
-                          total_price: _totalPrice,
-                          vault_id: selectedVaultId!,
-                        );
+                              final bill = Bill(
+                                status: _selectedPaymentStatus,
+                                id: 0,
+                                userId: user.id,
+                                customerName: customerNameController.text,
+                                date: parsedDate,
+                                items: items,
+                                payment: double.tryParse(paymentController.text) ?? 0.0,
+                                total_price: _totalPrice,
+                                vault_id: selectedVaultId ?? "",
+                                customer_type: _selectedCustomerType ,
+                                isFavorite: false,
+                                description: 'جاري التنفيذ' ,
+                              );
 
-                        final payment = Payment(
-                          id: Supabase.instance.client.auth.currentUser!.id,
-                          billId: bill.id,
-                          date: DateTime.now(),
-                          userId: user.id,
-                          payment: bill.payment,
-                          payment_status: 'إيداع',
-                          createdAt: DateTime.now(),
-                        );
+                              final payment = Payment(
+                                id: Supabase.instance.client.auth.currentUser!.id,
+                                billId: bill.id,
+                                date: DateTime.now(),
+                                userId: user.id,
+                                payment: bill.payment,
+                                vault_id: selectedVaultId!,
+                                payment_status: 'إيداع',
+                                createdAt: DateTime.now(),
+                              );
 
-                        final billreport = Report(
-                          id: Supabase.instance.client.auth.currentUser!.id,
-                          title: "اضافة فاتورة",
-                          user_name: user.id,
-                          date: DateTime.now(),
-                          description:
-                          'رقم الفاتورة: (${bill.id.toString()}) - اسم العميل : ${bill.customerName} - اجمالي الفاتورة: ${bill.total_price.toStringAsFixed(2)}',
-                          operationNumber: 0,
-                        );
+                              final currentUser = Supabase.instance.client.auth.currentUser!;
+                              final userData = await Supabase.instance.client
+                                  .from('users')
+                                  .select('name')
+                                  .eq('id', currentUser.id)
+                                  .maybeSingle();
 
-                        await onAddBill(bill, payment, billreport);
-                        final repository = BillRepository();
-                        Navigator.of(context).pop();
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Error: User not authenticated'),
-                          ),
-                        );
-                      }
-                    }
+
+                              final billreport = Report(
+                                // id: Supabase.instance.client.auth.currentUser!.id,
+                                id: const Uuid().v4(), // 👈 id جديد للتقرير
+                                title: "اضافة فاتورة",
+                                // user_id:userData?['id'] ?? "مجهول",
+                                user_name: userData?['name'] ?? "مجهول", // 👈 من جدول users
+                                date: DateTime.now(),
+                                description:'\nفاتورة جديدة'
+                                    'رقم الفاتورة: (${bill.id.toString()}) - اسم العميل : ${double.tryParse(paymentController.text)} - اجمالي الفاتورة: ${bill.total_price.toStringAsFixed(2)}',
+                                operationNumber: 0,
+                              );
+
+                              final paymentreport = Report(
+                                // id: Supabase.instance.client.auth.currentUser!.id,
+                                id: const Uuid().v4(), // 👈 id جديد للتقرير
+                                title: "ايداع",
+                                // user_id:userData?['id'] ?? "مجهول",
+                                user_name: userData?['name'] ?? "مجهول", // 👈 من جدول users
+                                date: DateTime.now(),
+                                // description:'رقم الفاتورة: (${bill.id.toString()}) - اسم العميل : ${bill.customerName} - اجمالي الفاتورة: ${bill.total_price.toStringAsFixed(2)}',
+                                description:'رقم الفاتورة: (${bill.id.toString()}) - المبلغ المدفوع : ${bill.payment} - اجمالي الفاتورة: ${bill.total_price.toStringAsFixed(2)}',
+                                operationNumber: 0,
+                              );
+
+                              await onAddBill(bill, payment, billreport, paymentreport);
+                              final repository = BillRepository();
+                              Navigator.of(context).pop();
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content:
+                                      Text('Error: UserLayouts not authenticated'),
+                                ),
+                              );
+                            }
+                          }
                         : null, // Disable button if customer doesn't exist
                     child: Text('اضف الفاتورة'),
                   ),
-
-
                 ],
               ),
             ],

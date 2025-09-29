@@ -8,6 +8,7 @@ import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/b
 import 'package:system/features/customer/data/model/business_customer_model.dart';
 import 'package:system/features/customer/data/model/normal_customer_model.dart';
 import 'package:system/features/customer/presentation/widgets/totalPaymentDialog.dart';
+import 'package:system/features/report/UI/customer/pdf.dart';
 
 class CustomerSelectionPage extends StatefulWidget {
   @override
@@ -151,7 +152,8 @@ class _CustomerSelectionPageState extends State<CustomerSelectionPage> {
     });
   }
 
-  Future<void> _updateBillStatus(int billId, int totalPrice, int newPayment) async {
+  Future<void> _updateBillStatus(
+      int billId, double totalPrice, double newPayment) async {
     try {
       // Fetch all payments for the given bill
       final payments = await Supabase.instance.client
@@ -160,11 +162,12 @@ class _CustomerSelectionPageState extends State<CustomerSelectionPage> {
           .eq('bill_id', billId);
 
       // Calculate the total payment amount
-      int totalPayment = payments.fold<double>(
-        0,
+      double totalPayment = payments
+          .fold<double>(
+            0,
             (sum, payment) => sum + (payment['payment'] ?? 0),
-      ).toInt();
-
+          )
+          ;
 
       // Determine the new bill status
       String status;
@@ -182,11 +185,10 @@ class _CustomerSelectionPageState extends State<CustomerSelectionPage> {
         'status': status, // ✅ تحديث الحالة
       }).eq('id', billId);
 
-setState(() async {
-  await fetchBills();
-
-});
-     await fetchBills();
+      setState(() async {
+        await fetchBills();
+      });
+      await fetchBills();
       debugPrint(
           'Bill $billId updated: Payment = $newPayment, Status = $status');
     } catch (error) {
@@ -195,27 +197,26 @@ setState(() async {
   }
 
   Future<bool> showAddPaymentDialog(
-      BuildContext context,
-      int billId,
-      int payment,
-      String customerName,
-      DateTime billDate,
-      int total_price,
-      ) async {
+    BuildContext context,
+    int billId,
+    double payment,
+    String customerName,
+    DateTime billDate,
+      double total_price,
+  ) async {
     return await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AddPaymentDialog(
-          billId: billId,
-          payment: payment,
-          customerName: customerName,
-          billDate: billDate,
-          total_price: total_price,
-
-        );
-      },
-    ) ??
-     false ;
+          context: context,
+          builder: (BuildContext context) {
+            return AddPaymentDialog(
+              billId: billId,
+              payment: payment,
+              customerName: customerName,
+              billDate: billDate,
+              total_price: total_price,
+            );
+          },
+        ) ??
+        false;
   }
 
   Future<bool> showPaymentDialog(
@@ -242,7 +243,6 @@ setState(() async {
               updateBillStatus: _updateBillStatus,
             );
           },
-
         ) ??
         false;
   }
@@ -484,6 +484,21 @@ setState(() async {
                                   }
                                 },
                               ),
+                              TextButton(
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.picture_as_pdf,
+                                        color: Colors.green),
+                                    SizedBox(
+                                      width: 8,
+                                    ),
+                                    Text("استخراج PDF"),
+                                  ],
+                                ),
+                                onPressed: () async {
+                                  generateBillsPDF(context, filteredBills, startDate, endDate, customerNameController.text.trim(),searchByDate);
+                                },
+                              ),
                             ],
                           ),
                           SizedBox(
@@ -519,9 +534,7 @@ setState(() async {
                     ],
                   ),
                 ),
-                // SizedBox(
-                //   width: 10,
-                // ),
+
                 if (bills.isNotEmpty && selectedCustomerType == "عادي")
                   Padding(
                     padding: const EdgeInsets.fromLTRB(90, 0, 0, 0),
@@ -695,7 +708,8 @@ setState(() async {
                                       onPressed: () {
                                         // print("Action on bill ${bill.id}");
                                         // TODO: Handle navigation to bill details
-                                        showBillDetailsDialog(context,bill); // ✅ Navigate to details
+                                        showBillDetailsDialog(context,
+                                            bill); // ✅ Navigate to details
                                       },
                                       child: Text("عرض"),
                                     ),
@@ -703,13 +717,14 @@ setState(() async {
                                     ElevatedButton(
                                       onPressed: () async {
                                         // TODO: Handle navigation to bill details
-                                        bool result = await showAddPaymentDialog(
-                                            context,
-                                            bill.id,
-                                            bill.payment,
-                                            bill.customerName,
-                                            bill.date ,
-                                            bill.total_price);
+                                        bool result =
+                                            await showAddPaymentDialog(
+                                                context,
+                                                bill.id,
+                                                bill.payment,
+                                                bill.customerName,
+                                                bill.date,
+                                                bill.total_price);
                                         await fetchBills();
 
                                         setState(() async {
@@ -721,7 +736,6 @@ setState(() async {
                                             fetchBills();
                                           }); // Refresh UI only after async work is completed
                                         }
-
                                       },
                                       child: Text("اضافة مدفوعات"),
                                     ),
@@ -749,22 +763,20 @@ setState(() async {
     );
   }
 
-  // Future<List<Map<String, dynamic>>> _fetchPayments(int billId) async {
-  //   final response = await Supabase.instance.client
-  //       .from('payment')
-  //       .select('*, users(name)')
-  //       .eq('bill_id', billId)
-  //       .order('date', ascending: false);
-  //
-  //   if (response == null) {
-  //     throw Exception('Failed to fetch payments.');
-  //   }
-  //
-  //   return List<Map<String, dynamic>>.from(response);
-  // }
+// Future<List<Map<String, dynamic>>> _fetchPayments(int billId) async {
+//   final response = await Supabase.instance.client
+//       .from('payment')
+//       .select('*, users(name)')
+//       .eq('bill_id', billId)
+//       .order('date', ascending: false);
+//
+//   if (response == null) {
+//     throw Exception('Failed to fetch payments.');
+//   }
+//
+//   return List<Map<String, dynamic>>.from(response);
+// }
 }
-
-
 
 Future<void> showBillDetailsDialog(BuildContext context, Bill bill) async {
   showDialog(

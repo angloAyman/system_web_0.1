@@ -6,6 +6,8 @@ import 'package:system/features/billes/data/repositories/bill_repository.dart';
 import 'package:system/features/billes/presentation/Dialog/adding/bill/showAddBillDialog.dart';
 import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/bill/showBillDetailsDialog.dart';
 
+import '../../features/Vaults/Presentation/dialog/PaymentDialog.dart';
+
 class userMainScreen2 extends StatefulWidget {
   const userMainScreen2({super.key});
 
@@ -21,14 +23,16 @@ class _userMainScreen2State extends State<userMainScreen2> {
   @override
   void initState() {
     super.initState();
-    _favoriteBillsFuture = _billRepository.getFavoriteBills(); // Fetch favorite bills
-    _NotfavoriteBillsFuture = _billRepository.getNotFavoriteBills(); // Fetch not favorite bills
+    _favoriteBillsFuture =
+        _billRepository.getFavoriteBills(); // Fetch favorite bills
+    _NotfavoriteBillsFuture =
+        _billRepository.getNotFavoriteBills(); // Fetch not favorite bills
   }
 
   // Function to add a bill
-  void addBill(Bill bill, payment, report) async {
+  void addBill(Bill bill, payment, report, preport) async {
     try {
-      await _billRepository.addBill(bill, payment, report);
+      await _billRepository.addBill(bill, payment, report, preport);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تم إضافة الفاتورة بنجاح')),
       );
@@ -39,114 +43,95 @@ class _userMainScreen2State extends State<userMainScreen2> {
     }
   }
 
-  // Function to show the report selection dialog
-  // void _showReportSelectionDialog(BuildContext context) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: const Text("اختار نوع التقرير"),
-  //         content: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           children: [
-  //             // ListTile(
-  //             //   title: const Text("إنشاء تقرير"),
-  //             //
-  //             //   onTap: () {
-  //             //     Navigator.pushReplacementNamed(context, '/ItemsReport');
-  //             //     // Navigator.of(context).pop();
-  //             //   },
-  //             // ),
-  //             // ListTile(
-  //             //   title: const Text("المنتجات والفواتير"),
-  //             //   onTap: () {
-  //             //     Navigator.pushReplacementNamed(context, '/ItemsCharts');
-  //             //     // Navigator.of(context).pop();
-  //             //   },
-  //             // ),
-  //             ListTile(
-  //               title: const Text("تقارير عمليات الصنف"),
-  //               onTap: () {
-  //                 Navigator.pushReplacementNamed(context, '/CategoryReport');
-  //                 // Navigator.of(context).pop();
-  //               },
-  //             ),
-  //           ],
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
-            SizedBox(height: 20,),
+            SizedBox(
+              height: 20,
+            ),
             Expanded(
               child: Center(
-                 child: SingleChildScrollView(
-                   child: Wrap(
-                     alignment: WrapAlignment.center,
-                     spacing: 20,
-                     runSpacing: 20,
-                     children: [
-                       _buildButton(
-                         text: "إضافة فاتورة",
-                         icon: Icons.file_copy_outlined,
-                         onPressed: () {
-                           showAddBillDialog(
-                             context: context,
-                             onAddBill: addBill,
-                           ).then((_) {
-                             Navigator.pushReplacementNamed(context, '/userbilling2');
-                           });
-                         },
-                       ),
-                       _buildButton(
-                         text: "إضافة صنف",
-                         icon: Icons.book,
-                         onPressed: () {
-                           Navigator.pushReplacementNamed(context, '/UserCategory');
-                         },
-                       ),
-                       _buildButton(
-                         text: "إضافة عميل",
-                         icon: Icons.supervised_user_circle_sharp,
-                         onPressed: () {
-                           Navigator.pushReplacementNamed(context, '/Usercustomer2');
-                         },
-                       ),
-                       _buildButton(
-                         text: "إيداع مبلغ",
-                         icon: Icons.payment,
-                         onPressed: () {
-                           Navigator.pushReplacementNamed(context, '/UserPayment2');
-                         },
-                       ),
-                       _buildButton(
-                         text: "سحب مبلغ",
-                         icon: Icons.payment,
-                         onPressed: () {
-                           Navigator.pushReplacementNamed(context, '/UserPayment2');
-                         },
-                       ),
-                       // _buildButton(
-                       //   text: "طباعة تقرير",
-                       //   icon: Icons.add_business_sharp,
-                       //   onPressed: () {
-                       //     _showReportSelectionDialog(context);
-                       //   },
-                       // ),
-                     ],
-                   ),
-                 ),
+                child: SingleChildScrollView(
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 20,
+                    runSpacing: 20,
+                    children: [
+                      _buildButton(
+                        text: "إضافة فاتورة",
+                        icon: Icons.file_copy_outlined,
+                        onPressed: () {
+                          showAddBillDialog(
+                            context: context,
+                            onAddBill: addBill,
+                          ).then((_) {
+                            Navigator.pushReplacementNamed(
+                                context, '/userbilling2');
+                          });
+                        },
+                      ),
+                      _buildButton(
+                        text: "إضافة صنف",
+                        icon: Icons.book,
+                        onPressed: () {
+                          Navigator.pushReplacementNamed(
+                              context, '/UserCategory');
+                        },
+                      ),
+                      _buildButton(
+                        text: "إضافة عميل",
+                        icon: Icons.supervised_user_circle_sharp,
+                        onPressed: () {
+                          Navigator.pushReplacementNamed(
+                              context, '/Usercustomer2');
+                        },
+                      ),
+                      _buildButton(
+                        text: "إيداع مبلغ",
+                        icon: Icons.payment,
+                        onPressed: () {
+                          Navigator.pushReplacementNamed(
+                              context, '/UserPayment2');
+                        },
+                      ),
+                      _buildButton(
+                        text: "اضافة مصروفات",
+                        icon: Icons.payment,
+                        // onPressed: () {
+                        //   Navigator.pushReplacementNamed(context, '/UserPayment2');
+                        // },
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => PaymentDialog(),
+                          ).then((_) {
+                            // Call _refreshVaults after the dialog is closed
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("تم اضافة المصروفات")),
+                            );
+                          });
+                        },
+                      ),
+                      _buildButton(
+                        text: "كشف حساب",
+                        icon: Icons.inventory_rounded,
+                        onPressed: () {
+                          Navigator.pushReplacementNamed(
+                              context, '/CustomerSelectionPage2');
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-            Text("الجدول التنفيذي",style: TextStyle(fontSize: 20),),
-
+            Text(
+              "الجدول التنفيذي",
+              style: TextStyle(fontSize: 20),
+            ),
             Expanded(
               child: FutureBuilder<List<Bill>>(
                 future: _favoriteBillsFuture,
@@ -189,16 +174,20 @@ class _userMainScreen2State extends State<userMainScreen2> {
                                   color: Colors.blue,
                                   onPressed: () {
                                     // Action for "View"
-                                    showBillDetailsDialog(context, bill ,);
+                                    showBillDetailsDialog(
+                                      context,
+                                      bill,
+                                    );
                                   },
                                 ),
-
                                 IconButton(
                                   icon: Icon(
                                     bill.isFavorite
                                         ? Icons.account_balance
                                         : Icons.account_balance_outlined,
-                                    color: bill.isFavorite ? AppColors.primary : null,
+                                    color: bill.isFavorite
+                                        ? AppColors.primary
+                                        : null,
                                   ),
                                   onPressed: () async {
                                     try {
@@ -207,22 +196,27 @@ class _userMainScreen2State extends State<userMainScreen2> {
                                       _favoriteBillsFuture;
                                       _NotfavoriteBillsFuture;
                                       // Update the UI
-                                      setState(()  {
+                                      setState(() {
                                         bill.isFavorite = false;
-                                        _favoriteBillsFuture = _billRepository.getFavoriteBills(); // Fetch favorite bills
-                                        _NotfavoriteBillsFuture = _billRepository.getNotFavoriteBills();
+                                        _favoriteBillsFuture = _billRepository
+                                            .getFavoriteBills(); // Fetch favorite bills
+                                        _NotfavoriteBillsFuture =
+                                            _billRepository
+                                                .getNotFavoriteBills();
                                       });
 
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
                                         SnackBar(
-                                            content:
-                                            Text('تمت إزالة الفاتورة من المفضلة')),
+                                            content: Text(
+                                                'تمت إزالة الفاتورة من المفضلة')),
                                       );
-
                                     } catch (e) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
                                         SnackBar(
-                                            content: Text('حدث خطأ: ${e.toString()}')),
+                                            content: Text(
+                                                'حدث خطأ: ${e.toString()}')),
                                       );
                                     }
                                   },
@@ -237,9 +231,10 @@ class _userMainScreen2State extends State<userMainScreen2> {
                 },
               ),
             ),
-
-            Text("الجدول الفواتير التامة",style: TextStyle(fontSize: 20),),
-
+            Text(
+              "الجدول الفواتير التامة",
+              style: TextStyle(fontSize: 20),
+            ),
             Expanded(
               child: FutureBuilder<List<Bill>>(
                 future: _NotfavoriteBillsFuture,
@@ -282,10 +277,12 @@ class _userMainScreen2State extends State<userMainScreen2> {
                                   color: Colors.blue,
                                   onPressed: () {
                                     // Action for "View"
-                                    showBillDetailsDialog(context, bill ,);
+                                    showBillDetailsDialog(
+                                      context,
+                                      bill,
+                                    );
                                   },
                                 ),
-
                               ],
                             ),
                           ),
@@ -307,40 +304,39 @@ class _userMainScreen2State extends State<userMainScreen2> {
     required IconData icon,
     required VoidCallback onPressed,
   }) {
-    return
-      InkWell(
-        onTap: onPressed,
-        highlightColor: AppColors.back,
-        // Add highlight effect on tap
-        splashColor: AppColors.baby,
-        // Splash effect color
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  size: 45,
-                  color: AppColors.background2,
+    return InkWell(
+      onTap: onPressed,
+      highlightColor: AppColors.back,
+      // Add highlight effect on tap
+      splashColor: AppColors.baby,
+      // Splash effect color
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(15.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 45,
+                color: AppColors.background2,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  text,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-      );
+      ),
+    );
   }
-  }
+}

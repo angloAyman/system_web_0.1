@@ -1,7 +1,8 @@
+import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:flutter/material.dart';
-import 'package:system/Adminfeatures/customer/data/model/business_customer_model.dart';
-import 'package:system/Adminfeatures/customer/data/repository/business_customer_repository.dart';
-import 'package:system/Adminfeatures/customer/presentation/widgets/BusinessCustomerDialogs.dart';
+import 'package:system/features/customer/data/model/business_customer_model.dart';
+import 'package:system/features/customer/data/repository/business_customer_repository.dart';
+import 'package:system/features/customer/presentation/business/AddBusinessCustomerDialogs.dart';
 
 class BusinessCustomerPage extends StatefulWidget {
   final String searchQuery;
@@ -18,6 +19,10 @@ class _BusinessCustomerPageState extends State<BusinessCustomerPage> {
   late Future<List<business_customers>> _customersFuture;
   List<business_customers> _customers = [];
   List<business_customers> _filteredCustomers = [];
+
+  final _verticalScrollController = ScrollController();
+  final _horizontalScrollController = ScrollController();
+
 
   @override
   void initState() {
@@ -66,11 +71,29 @@ class _BusinessCustomerPageState extends State<BusinessCustomerPage> {
           _filterCustomers(widget.searchQuery);
 
           return Container(
-            alignment: AlignmentDirectional.topStart,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: DataTable(
-                columnSpacing: 20,
+            alignment: AlignmentDirectional.topEnd,
+            // child: SingleChildScrollView(
+            child: AdaptiveScrollbar(
+              sliderDefaultColor: Colors.grey.withOpacity(0.7),
+              sliderActiveColor: Colors.grey,
+              controller: _verticalScrollController,
+          child: AdaptiveScrollbar(
+          controller: _horizontalScrollController,
+          position: ScrollbarPosition.bottom,
+          underColor: Colors.blueGrey.withOpacity(0.3),
+          sliderDefaultColor: Colors.grey.withOpacity(0.7),
+          sliderActiveColor: Colors.grey,
+          child: SingleChildScrollView(
+          controller: _verticalScrollController  ,
+          scrollDirection: Axis.vertical,
+          child: SingleChildScrollView(
+            reverse: true,
+            controller: _horizontalScrollController,
+          scrollDirection: Axis.horizontal,
+          child: Padding(
+          padding: const EdgeInsets.only(right: 8.0, bottom: 16.0),
+          child:DataTable(
+                columnSpacing: 25,
                 columns: [
                   DataColumn(
                       label: Text('اسم الشركة',
@@ -93,9 +116,6 @@ class _BusinessCustomerPageState extends State<BusinessCustomerPage> {
                   DataColumn(
                       label: Text('العنوان',
                           style: TextStyle(fontWeight: FontWeight.bold))),
-                  // DataColumn(
-                  //     label: Text('الخصم',
-                  //         style: TextStyle(fontWeight: FontWeight.bold))),
                   DataColumn(
                       label: Text('المهام',
                           style: TextStyle(fontWeight: FontWeight.bold))),
@@ -121,7 +141,9 @@ class _BusinessCustomerPageState extends State<BusinessCustomerPage> {
                                 businessCustomer: customer,
                                 isBusiness: true,
                                 onSubmit: (name, personName, email, phone,
-                                        personPhone, address, discount,personphonecall) =>
+                                        personPhone, address,
+                                    // discount,
+                                    personphonecall) =>
                                     _updateCustomer(
                                         customer.id,
                                         name,
@@ -130,7 +152,7 @@ class _BusinessCustomerPageState extends State<BusinessCustomerPage> {
                                         phone,
                                         personPhone,
                                         address,
-                                        discount,
+                                        // discount,
                                         personphonecall
                                     ),
                               );
@@ -152,7 +174,7 @@ class _BusinessCustomerPageState extends State<BusinessCustomerPage> {
                 }).toList(),
               ),
             ),
-          );
+          )))));
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -161,9 +183,12 @@ class _BusinessCustomerPageState extends State<BusinessCustomerPage> {
             context: context,
             isBusiness: true,
             onSubmit: (name, personName, email, phone, personPhone, address,
-                    discount,personphonecall) =>
+                    // discount,
+                personphonecall) =>
                 _addCustomer(name, personName, email, phone, personPhone,
-                    address, discount,personphonecall),
+                    address,
+                    // discount,
+                    personphonecall),
           );
         },
         child: Icon(Icons.add),
@@ -172,24 +197,28 @@ class _BusinessCustomerPageState extends State<BusinessCustomerPage> {
   }
 
   void _addCustomer(String name, String personName, String email, String phone,
-      String personPhone, String address, String discount, String personphonecall ) async {
+      String personPhone, String address,
+      // String discount,
+      String personphonecall ) async {
     final newCustomer = business_customers(
       id: '',
       name: name,
       personName: personName,
-      email: email,
-      phone: phone,
-      personPhone: personPhone,
-      address: address,
-      discount: discount,
-      personphonecall: personphonecall,
+      email: email??"لم يتم الادخال",
+      phone: phone??"لم يتم الادخال",
+      personPhone: personPhone??"لم يتم الادخال",
+      address: address??"لم يتم الادخال",
+      // discount: discount??"لم يتم الادخال",
+      personphonecall: personphonecall??"لم يتم الادخال",
     );
     await _repository.addCustomer(newCustomer);
     _refreshCustomers();
   }
 
   void _updateCustomer(String id, String name, String personName, String email,
-      String phone, String personPhone, String address, String discount, String personphonecall) async {
+      String phone, String personPhone, String address,
+      // String discount,
+      String personphonecall) async {
     final updatedCustomer = business_customers(
       id: id,
       name: name,
@@ -199,7 +228,7 @@ class _BusinessCustomerPageState extends State<BusinessCustomerPage> {
       personPhone: personPhone,
       personphonecall: personphonecall,
       address: address,
-      discount: discount,
+      // discount: discount,
     );
     await _repository.updateCustomer(updatedCustomer);
     _refreshCustomers();

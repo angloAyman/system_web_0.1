@@ -1,342 +1,402 @@
+// import 'package:flutter/material.dart';
+// import 'package:supabase_flutter/supabase_flutter.dart';
+// import 'package:system/features/auth/data/auth_service.dart';
+// import 'package:system/user/UserLayouts/userMainScreen.dart';
+// import 'package:system/user/features/Customer/presentation/customer_account_statement.dart';
+// import 'package:system/user/features/bills/presentation/UserBillingPage.dart';
+// import 'package:system/user/features/payment/UserPaymentPage.dart';
+// import 'package:system/features/category/presentation/screens/Usercategory_page.dart';
+// import 'package:system/user/features/Customer/presentation/UsercustomerPage.dart';
+// import 'package:system/main_screens/Responsive/login_responsive.dart';
+//
+// import '../../main.dart';
+//
+// class admin extends StatefulWidget {
+//   @override
+//   _adminState createState() => _adminState();
+// }
+//
+// class _adminState extends State<admin> {
+//   int _selectedIndex = 0;
+//   final AuthService _authService = AuthService(Supabase.instance.client);
+//   String userName = "";
+//   String userid = "";
+//   String userRole = "";
+//   bool _isOffline = false;
+//
+//   Map<String, dynamic> userInfo = {}; // To store user info
+//
+//   Future<void> _getUserInfo() async {
+//     final SupabaseClient supabase = Supabase.instance.client;
+//
+//     // Get the currently signed-in user's ID
+//     final User? user = supabase.auth.currentUser;
+//     if (user != null) {
+//       // Fetch the user's profile from the 'users' table
+//       final response = await supabase
+//           .from('users')
+//           .select('*') // Fetch all columns
+//           .eq('id', user.id)
+//           .single();
+//
+//       setState(() {
+//         userName = response?['name'] ?? 'Unknown UserLayouts';
+//         userid = response?['id'] ?? 'Unknown UserLayouts';
+//         userRole = response?['role'] ?? 'Unknown UserLayouts';
+//         userInfo = response ?? {}; // Store all user information
+//       });
+//     } else {
+//       setState(() {
+//         userName = 'No UserLayouts Signed In';
+//       });
+//     }
+//   }
+//
+//   // Pages for navigation
+//   final List<Widget> _pages = [
+//     // الرئيسية
+//     userMainScreen(),
+//     // الفواتير
+//     UserBillingPage(),
+//     // الماليات
+//     UserPaymentPage(),
+//     // الاصناف
+//     UserCategoryPage(),
+//     //العملاء
+//     UserCustomerPage(),
+//     //كشف حساب
+//     CustomerSelectionPage(),
+//     // خروج
+//     LoginResponsive(),
+//   ];
+//
+//   // Drawer menu options
+//   void _onItemTapped(int index) {
+//     setState(() {
+//       _selectedIndex = index;
+//       Navigator.pop(context); // Close the drawer after navigation
+//     });
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text('مرحبا بك في USER '),
+//         centerTitle: true,
+//         actions: [
+//           Switch(
+//             value: themeManagermain.themeMode == ThemeMode.dark,
+//             onChanged: (newValue) {
+//               themeManagermain.toggleTheme(newValue);
+//             },
+//           )
+//         ],
+//         bottom: _isOffline
+//             ? PreferredSize(
+//                 preferredSize: const Size.fromHeight(30.0),
+//                 child: Container(
+//                   color: Colors.red,
+//                   height: 30,
+//                   child: const Center(
+//                     child: Text(
+//                       'لا يوجد اتصال بالإنترنت',
+//                       style: TextStyle(color: Colors.white),
+//                     ),
+//                   ),
+//                 ),
+//               )
+//             : null,
+//       ),
+//
+//
+//       drawer: Drawer(
+//         child: ListView(
+//           padding: EdgeInsets.zero,
+//           children: [
+//             DrawerHeader(
+//               decoration: BoxDecoration(
+//                 color: Colors.blue,
+//               ),
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 mainAxisAlignment: MainAxisAlignment.center,
+//                 children: [
+//                   Icon(Icons.admin_panel_settings,
+//                       size: 50, color: Colors.white),
+//                   SizedBox(height: 10),
+//                   Text(
+//                     'Rotosh',
+//                     style: TextStyle(color: Colors.white, fontSize: 20),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//             ListTile(
+//               leading: Icon(Icons.check_circle),
+//               title: Text('الرئيسية'),
+//               selected: _selectedIndex == 0,
+//               onTap: () => _onItemTapped(0),
+//             ),
+//             ListTile(
+//               leading: Icon(Icons.bar_chart),
+//               title: Text('الفواتير'),
+//               selected: _selectedIndex == 1,
+//               onTap: () => _onItemTapped(1),
+//             ),
+//             ListTile(
+//               leading: Icon(Icons.bar_chart),
+//               title: Text('الماليات'),
+//               selected: _selectedIndex == 2,
+//               onTap: () => _onItemTapped(2),
+//             ),
+//             ListTile(
+//               leading: Icon(Icons.bar_chart),
+//               title: Text('الاصناف'),
+//               selected: _selectedIndex == 3,
+//               onTap: () => _onItemTapped(3),
+//             ),
+//             ListTile(
+//               leading: Icon(Icons.bar_chart),
+//               title: Text('العملاء'),
+//               selected: _selectedIndex == 4,
+//               onTap: () => _onItemTapped(4),
+//             ),
+//             ListTile(
+//               leading: Icon(Icons.output_rounded),
+//               title: Text('خروج'),
+//               selected: _selectedIndex == 5,
+//               onTap: () async {
+//                 _authService.logoutUser(userid);
+//                 _onItemTapped(5);
+//                 Navigator.pushAndRemoveUntil(
+//                   context,
+//                   MaterialPageRoute(builder: (context) => LoginResponsive()),
+//                       (Route<dynamic> route) => false, // إزالة جميع الصفحات السابقة
+//                 );
+//               },
+//             ),
+//           ],
+//         ),
+//       ),
+//       body: _pages[_selectedIndex],
+//     );
+//   }
+// }
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:system/features/attendance/Data/AttendanceRepository.dart';
 import 'package:system/features/auth/data/auth_service.dart';
-import 'package:system/features/billes/presentation/BillingPage.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:system/user/UserLayouts/userMainScreen.dart';
 import 'package:system/user/features/Customer/presentation/customer_account_statement.dart';
 import 'package:system/user/features/bills/presentation/UserBillingPage.dart';
-import 'package:system/features/payment/PaymentPage.dart';
 import 'package:system/user/features/payment/UserPaymentPage.dart';
 import 'package:system/features/category/presentation/screens/Usercategory_page.dart';
-import 'package:system/features/category/presentation/screens/category_page.dart';
 import 'package:system/user/features/Customer/presentation/UsercustomerPage.dart';
-import 'package:system/features/customer/presentation/customerPage.dart';
-import 'package:system/main_screens/AdminLayouts/mainScreen.dart';
 import 'package:system/main_screens/Responsive/login_responsive.dart';
-// import 'package:system/main_screens/UserLayouts/userMainScreen.dart';
+import '../../main.dart';
 
-class admin extends StatefulWidget {
+class UserDashboard extends StatefulWidget {
   @override
-  _adminState createState() => _adminState();
+  _UserDashboardState createState() => _UserDashboardState();
 }
 
-class _adminState extends State<admin> {
+class _UserDashboardState extends State<UserDashboard> {
   int _selectedIndex = 0;
   final AuthService _authService = AuthService(Supabase.instance.client);
   String userName = "";
   String userid = "";
   String userRole = "";
-  Map<String, dynamic> userInfo = {}; // To store user info
+  bool _isOffline = false;
+  bool _isLoading = true;
 
+  Map<String, dynamic> userInfo = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserInfo();
+    _checkConnectivity();
+  }
+
+  Future<void> _checkConnectivity() async {
+    // Implement actual connectivity check here
+    final isConnected = await _checkInternetConnection();
+    setState(() {
+      _isOffline = !isConnected;
+    });
+  }
+
+  Future<bool> _checkInternetConnection() async {
+    // Placeholder for actual connectivity check
+    // You might use connectivity_plus package
+    return true;
+  }
 
   Future<void> _getUserInfo() async {
-    final SupabaseClient supabase = Supabase.instance.client;
-
-    // Get the currently signed-in user's ID
-    final User? user = supabase.auth.currentUser;
-    if (user != null) {
-      // Fetch the user's profile from the 'users' table
-      final response = await supabase
-          .from('users')
-          .select('*') // Fetch all columns
-          .eq('id', user.id)
-          .single();
-
-      setState(() {
-        userName = response?['name'] ?? 'Unknown UserLayouts';
-        userid = response?['id'] ?? 'Unknown UserLayouts';
-        userRole = response?['role'] ?? 'Unknown UserLayouts';
-        userInfo = response ?? {}; // Store all user information
-      });
-    } else {
-      setState(() {
-        userName = 'No UserLayouts Signed In';
-      });
-    }
-  }
-
-
-  // Pages for navigation
-  final List<Widget> _pages = [
-    // الرئيسية
-    userMainScreen(),
-    // الفواتير
-    UserBillingPage(),
-    // الماليات
-    UserPaymentPage(),
-    // الاصناف
-    UserCategoryPage(),
-    //العملاء
-    UserCustomerPage(),
-    //كشف حساب
-    CustomerSelectionPage()
-    // خروج
-    // loginResponsive(),
-  ];
-
-  // Drawer menu options
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-      Navigator.pop(context); // Close the drawer after navigation
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        // title: Text(_selectedIndex == 0 ? 'user' : 'user'),
-        title: Text("user"),
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.admin_panel_settings, size: 50, color: Colors.white),
-                  SizedBox(height: 10),
-                  Text(
-                    'Rotosh',
-                    style: TextStyle(color: Colors.white, fontSize: 20),
-                  ),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.check_circle),
-              title: Text('الرئيسية'),
-              selected: _selectedIndex == 0,
-              onTap: () => _onItemTapped(0),
-            ),
-            ListTile(
-              leading: Icon(Icons.bar_chart),
-              title: Text('الفواتير'),
-              selected: _selectedIndex == 1,
-              onTap: () => _onItemTapped(1),
-            ),
-            ListTile(
-              leading: Icon(Icons.bar_chart),
-              title: Text('الماليات'),
-              selected: _selectedIndex == 2,
-              onTap: () => _onItemTapped(2),
-            ),
-            ListTile(
-              leading: Icon(Icons.bar_chart),
-              title: Text('الاصناف'),
-              selected: _selectedIndex == 3,
-              onTap: () => _onItemTapped(3),
-            ),
-            ListTile(
-              leading: Icon(Icons.bar_chart),
-              title: Text('العملاء'),
-              selected: _selectedIndex == 4,
-              onTap: () => _onItemTapped(4),
-            ),
-            ListTile(
-              leading: Icon(Icons.output_rounded),
-              title: Text('خروج'),
-              selected: _selectedIndex == 5,
-              onTap: () async {
-                await _authService.signOut();
-                _authService.logoutUser(userid);
-
-                _onItemTapped(5);
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) =>  LoginResponsive(),));
-
-              },
-            ),
-          ],
-        ),
-      ),
-      body: _pages[_selectedIndex],
-    );
-  }
-}
-
-// Attendance Page
-class AttendancePage extends StatefulWidget {
-  @override
-  State<AttendancePage> createState() => _AttendancePageState();
-}
-
-class _AttendancePageState extends State<AttendancePage> {
-  final AttendanceRepository _attendanceRepository = AttendanceRepository();
-
-  bool _isScanning = false;
-
-  String? _qrCodeResult;
-
-  String _statusMessage = '';
-
-  bool _isSubmitting = false;
-
-  void _onQRViewCreated(QRViewController controller) {
-    controller.scannedDataStream.listen((scanData) {
-      controller.pauseCamera();
-      setState(() {
-        _qrCodeResult = scanData.code;
-        _isScanning = false;
-      });
-    });
-  }
-
-  Future<void> _submitAttendance(String qrCode) async {
-    setState(() {
-      _isSubmitting = true;
-    });
-
+    setState(() => _isLoading = true);
     try {
-      // await _attendanceRepository.markAttendance(qrCode);
-      setState(() {
-        _statusMessage = 'تم تسجيل الحضور بنجاح!';
-      });
+      final SupabaseClient supabase = Supabase.instance.client;
+      final User? user = supabase.auth.currentUser;
+
+      if (user != null) {
+        final response = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+        setState(() {
+          userName = response?['name'] ?? 'Unknown User';
+          userid = response?['id'] ?? '';
+          userRole = response?['role'] ?? 'user';
+          userInfo = response ?? {};
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          userName = 'No User Signed In';
+          _isLoading = false;
+        });
+        _navigateToLogin();
+      }
     } catch (e) {
       setState(() {
-        _statusMessage = 'فشل تسجيل الحضور: $e';
+        _isLoading = false;
       });
-    } finally {
-      setState(() {
-        _isSubmitting = false;
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load user info: ${e.toString()}')),
+      );
     }
   }
 
+  void _navigateToLogin() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginResponsive()),
+          (Route<dynamic> route) => false,
+    );
+  }
+
+  final List<Widget> _pages = [
+    userMainScreen(),
+    UserBillingPage(),
+    UserPaymentPage(),
+    UserCategoryPage(),
+    UserCustomerPage(),
+    CustomerSelectionPage(),
+    LoginResponsive(),
+  ];
+
+  final List<Map<String, dynamic>> _menuItems = [
+    {'icon': Icons.home, 'title': 'الرئيسية'},
+    {'icon': Icons.receipt, 'title': 'الفواتير'},
+    {'icon': Icons.payments, 'title': 'الماليات'},
+    {'icon': Icons.category, 'title': 'الاصناف'},
+    {'icon': Icons.people, 'title': 'العملاء'},
+    {'icon': Icons.account_balance, 'title': 'كشف حساب'},
+    {'icon': Icons.logout, 'title': 'خروج'},
+  ];
+
+  void _onItemTapped(int index) {
+    if (index == _menuItems.length - 1) { // Logout item
+      _authService.logoutUser(userid);
+      _navigateToLogin();
+      return;
+    }
+
+    setState(() {
+      _selectedIndex = index;
+    });
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: Padding(
-    padding: const EdgeInsets.all(16.0),
-    child: Column(
-    children: [
-    Expanded(
-    child: _isScanning
-    ? Center(
-    child: Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-    Text('قم بمسح رمز الاستجابة السريع'),
-    SizedBox(height: 20),
-    SizedBox(
-    width: 300,
-    height: 300,
-    child: QRView(
-    key: GlobalKey(debugLabel: 'QR'),
-    onQRViewCreated: _onQRViewCreated,
-    ),
-    ),
-    ElevatedButton(
-    onPressed: () {
-    setState(() {
-    _isScanning = false;
-    });
-    },
-    child: Text('إلغاء المسح'),
-    ),
-    ],
-    ),
-    )
-        : Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-    Center(
-      child: ElevatedButton(
-      onPressed: () {
-      setState(() {
-      _isScanning = true;
-      _qrCodeResult = null;
-      _statusMessage = '';
-      });
-      },
-      child: Text('بدء مسح QR'),
-      ),
-    ),
-    if (_qrCodeResult != null)
-    Padding(
-    padding: const EdgeInsets.symmetric(vertical: 16.0),
-    child: Text(
-    'تم مسح QR: $_qrCodeResult',
-    style: TextStyle(
-    fontSize: 16, fontWeight: FontWeight.bold),
-    textAlign: TextAlign.center,
-    ),
-    ),
-    if (_statusMessage.isNotEmpty)
-    Padding(
-    padding: const EdgeInsets.symmetric(vertical: 16.0),
-    child: Text(
-    _statusMessage,
-    style: TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.bold,
-    color: _statusMessage.contains('نجاح')
-    ? Colors.green
-        : Colors.red,
-    ),
-    textAlign: TextAlign.center,
-    ),
-    ),
-    ElevatedButton(
-    onPressed: _qrCodeResult == null || _isSubmitting
-    ? null
-        : () => _submitAttendance(_qrCodeResult!),
-    child: _isSubmitting
-    ? CircularProgressIndicator(
-    valueColor:
-    AlwaysStoppedAnimation<Color>(Colors.white),
-    )
-        : Text('تسجيل الحضور'),
-    ),
-    ]
-    )
-    //   Center(
-    //   child: Column(
-    //     mainAxisAlignment: MainAxisAlignment.center,
-    //     children: [
-    //       Icon(Icons.check_circle_outline, size: 100, color: Colors.green),
-    //       SizedBox(height: 20),
-    //       Text(
-    //         'Attendance Management',
-    //         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-    //       ),]
-    //       SizedBox(height: 10),
-    //       Text('Manage and track attendance records.'),
-    //       Container(
-    //           child: QRScannerPage(),
-    ),
-    ]
-    )
+    if (_isLoading) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('مرحبا بك $userName', style: TextStyle(fontSize: 18)),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: _getUserInfo,
+            tooltip: 'تحديث البيانات',
+          ),
+          Switch(
+            value: themeManagermain.themeMode == ThemeMode.dark,
+            onChanged: (newValue) => themeManagermain.toggleTheme(newValue),
+          ),
+        ],
+        bottom: _isOffline
+            ? PreferredSize(
+          preferredSize: Size.fromHeight(30.0),
+          child: Container(
+            color: Colors.red,
+            padding: EdgeInsets.symmetric(vertical: 5),
+            child: Center(
+              child: Text(
+                'لا يوجد اتصال بالإنترنت - الوضع غير متصل',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        )
+            : null,
+      ),
+      drawer: _buildDrawer(),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
       ),
     );
   }
-}
 
-// Report Page
-class ReportPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
+  Widget _buildDrawer() {
+    return Drawer(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.bar_chart, size: 100, color: Colors.blue),
-          SizedBox(height: 20),
-          Text(
-            'Reports',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          UserAccountsDrawerHeader(
+            accountName: Text(userName),
+            accountEmail: Text(userRole),
+            currentAccountPicture: CircleAvatar(
+              child: Image.asset(
+                "assets/logo/logo-6.png",
+              ),
+              backgroundColor: Colors.white,
+              // child: Icon(Icons.person, size: 40),
+            ),
+            decoration: BoxDecoration(
+              color: Colors.blue,
+            ),
           ),
-          SizedBox(height: 10),
-          Text('View attendance reports and statistics.'),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _menuItems.length,
+              itemBuilder: (context, index) {
+                final item = _menuItems[index];
+                return ListTile(
+                  leading: Icon(item['icon']),
+                  title: Text(item['title']),
+                  selected: _selectedIndex == index,
+                  onTap: () => _onItemTapped(index),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              'الإصدار 1.0.0',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
         ],
       ),
     );

@@ -36,7 +36,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
 
   void _initializePayments() {
     _updatedPayments = {
-      for (var bill in widget.customerBills) bill.id: bill.payment ?? 0.0
+      for (var bill in widget.customerBills) bill.id: bill.payment ?? 0
     };
   }
 
@@ -82,8 +82,8 @@ class _PaymentDialogState extends State<PaymentDialog> {
     setState(() => _isDistributed = true);
   }
 
-  double _getTotalAmount() => widget.customerBills.fold(0.0, (sum, bill) => sum + bill.total_price);
-  double _getTotalPaid() => widget.customerBills.fold(0.0, (sum, bill) => sum + _updatedPayments[bill.id]!);
+  double _getTotalAmount() => widget.customerBills.fold(0, (sum, bill) => sum + bill.total_price);
+  double _getTotalPaid() => widget.customerBills.fold(0, (sum, bill) => sum + _updatedPayments[bill.id]!);
   double _getRemainingAmount() => _getTotalAmount() - _getTotalPaid();
 
   @override
@@ -105,7 +105,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
           SizedBox(height: 10),
           ElevatedButton(
             onPressed: () {
-              double enteredAmount = double.tryParse(_totalPaymentController.text) ?? 0.0;
+              double enteredAmount = double.tryParse(_totalPaymentController.text) ?? 0;
               _applyPayment(enteredAmount);
             },
             child: Text('توزيع المبلغ'),

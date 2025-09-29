@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:system/Adminfeatures/Vaults/data/models/vault_model.dart';
-import 'package:system/Adminfeatures/Vaults/data/repositories/supabase_vault_repository.dart';
+import 'package:system/features/Vaults/data/models/vault_model.dart';
+import 'package:system/features/Vaults/data/repositories/supabase_vault_repository.dart';
 
 Future<void> showAddVaultDialog(BuildContext context, void Function() refreshVaults) async {
   final TextEditingController nameController = TextEditingController();
@@ -43,23 +43,23 @@ Future<void> showAddVaultDialog(BuildContext context, void Function() refreshVau
                 final name = nameController.text;
                 final balance = balanceController.text;
 
-                if (name.isEmpty || balance.isEmpty || double.tryParse(balance) == null) {
+                if (name.isEmpty || balance.isEmpty || int.tryParse(balance) == null) {
                   throw Exception('يرجى إدخال الحقول بشكل صحيح');
                 }
 
                 await SupabaseVaultRepository().addVault(
-                  Vault(id: '', name: name, balance: double.parse(balance)),
+                  Vault(id: '', name: name, balance: int.parse(balance),isActive: true),
                 );
                 refreshVaults();
                 Navigator.pop(context);
               } catch (e) {
                 print("$e");
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('..ءئءئ.Error adding vault: $e')),
+                  SnackBar(content: Text('.خطا في اضافة الخزينة: $e')),
                 );
               }
             },
-            child: const Text('إضافة الخزنة'),
+            child: const Text('إضافة الخزينة'),
           ),
         ],
       );

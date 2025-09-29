@@ -1,5 +1,5 @@
 // import 'package:flutter/material.dart';
-// import 'package:system/Adminfeatures/Vaults/data/repositories/supabase_vault_repository.dart';
+// import 'package:system/features/Vaults/data/repositories/supabase_vault_repository.dart';
 //
 // class PaymentDialog extends StatefulWidget {
 //   final String vaultId;
@@ -92,8 +92,10 @@
 //     );
 //   }
 // }
+
+// اضافة مصروفات
 import 'package:flutter/material.dart';
-import 'package:system/Adminfeatures/Vaults/data/repositories/supabase_vault_repository.dart';
+import 'package:system/features/Vaults/data/repositories/supabase_vault_repository.dart';
 
 class PaymentDialog extends StatefulWidget {
   @override
@@ -102,17 +104,20 @@ class PaymentDialog extends StatefulWidget {
 
 class _PaymentDialogState extends State<PaymentDialog> {
   final SupabaseVaultRepository _vaultRepository = SupabaseVaultRepository();
+
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
   List<Map<String, dynamic>> _vaults = [];
-  String? _selectedVaultName;
+  String? _selectedVaultid;
 
   @override
   void initState() {
     super.initState();
     _loadVaults();
   }
+
+
 
   // Fetch all vaults from the database
   Future<void> _loadVaults() async {
@@ -123,89 +128,117 @@ class _PaymentDialogState extends State<PaymentDialog> {
       });
     } catch (e) {
       _showMessage('حدث خطأ أثناء تحميل الخزائن: $e');
+      showCustomDialog("تنبيه", "حدث خطأ أثناء تحميل الخزائن: $e");
+
     }
   }
-
 
 
   Future<void> _submitPayment() async {
     final amount = int.tryParse(_amountController.text) ?? 0;
     final description = _descriptionController.text.trim();
 
-    // Validate the vault selection
-    if (_selectedVaultName == null) {
-      _showMessage('يرجى اختيار الخزنة.');
+    if (_selectedVaultid == null) {
+      showCustomDialog("تنبيه", "يرجى اختيار الخزنة.");
+      _showMessage("يرجى اختيار الخزنة.");
       return;
     }
 
-    // Validate the entered payment amount
     if (amount <= 0) {
-      _showMessage('يرجى إدخال مبلغ صالح.');
+      showCustomDialog("تنبيه", "يرجى إدخال مبلغ صالح.");
+      _showMessage( "يرجى إدخال مبلغ صالح.");
       return;
     }
 
-    // Validate the description field
     if (description.isEmpty) {
-      _showMessage('يرجى إدخال وصف للدفعة.');
+      showCustomDialog("تنبيه", "يرجى إدخال وصف للدفعة.");
+      _showMessage( "يرجى إدخال وصف للدفعة.");
       return;
     }
 
     try {
-
-      // Fetch the authenticated user's name
-      final user = await _vaultRepository.getAuthenticatedUser(); // Implement this in your repository
+      // 1️⃣ جلب بيانات المستخدم
+      final user = await _vaultRepository.getAuthenticatedUser();
       final userName = user?['name'] ?? 'غير معروف';
+      print("✅ المستخدم المسجل: $userName");
 
-      // Fetch the current balance of the selected vault
-      final currentBalance = await _vaultRepository.getVaultBalance(_selectedVaultName!);
+      // 2️⃣ جلب رصيد الخزنة
+      final currentBalance = await _vaultRepository.getVaultBalance(_selectedVaultid!) ?? 0;
+      print("💰 الرصيد الحالي للخزنة: $currentBalance");
 
-      // Ensure there are enough funds in the vault
       if (currentBalance < amount) {
-        _showMessage('الرصيد المتوفر في الخزنة غير كافٍ لإتمام الدفعة.');
+        showCustomDialog("تنبيه", "الرصيد المتوفر في الخزنة غير كافٍ لإتمام الدفعة.");
+        _showMessage( "الرصيد المتوفر في الخزنة غير كافٍ لإتمام الدفعة.");
         return;
       }
 
-      // Record the current timestamp
-      final timestamp = DateTime.now().toIso8601String();
-
-      // Update the vault balance and save the payment details
+      // 3️⃣ تحديث الرصيد
       await _vaultRepository.updateVaultBalanceAndLogPayment(
-        vaultname: _selectedVaultName!,
+        vault_id: _selectedVaultid!,
         newBalance: currentBalance - amount,
-        amount: amount,
-        description: description,
-        timestamp: timestamp,
-
       );
 
-      //  save the payment details
+      // 4️⃣ جلب اسم الخزنة
+      final vaultName = await _vaultRepository.getVaultbyid(_selectedVaultid!) ?? "غير معروف";
+      print("🏦 اسم الخزنة: $vaultName");
+
+      // 5️⃣ حفظ بيانات الدفع
       await _vaultRepository.subtractFromVaultBalance(
-        vaultname: _selectedVaultName!,
+        vault_id: _selectedVaultid!,
+        vault_name: vaultName,
         amount: amount,
         description: description,
-        timestamp: timestamp,
-        userName: userName, // Pass the user's name
-
+        timestamp: DateTime.now().toIso8601String(),
+        userName: userName,
       );
 
-
-      // Display success message
-      _showMessage('تمت إضافة الدفعة بنجاح.');
-
-      // Close the dialog after successful submission
-      // Navigator.of(context).pop();
+      showCustomDialog("نجاح", "تمت إضافة الدفعة بنجاح.");
+      _showMessage( "تمت إضافة الدفعة بنجاح.");
 
     } catch (e) {
-      // Display error message
-      _showMessage('حدث خطأ أثناء إضافة الدفعة: $e');
+      print("❌ خطأ أثناء إضافة الدفعة: ${e.toString()}");
+      showCustomDialog("خطأ", "حدث خطأ أثناء إضافة الدفعة.");
+      _showMessage( "حدث خطأ أثناء إضافة الدفعة.");
     }
   }
 
-  // Display a message in a snackbar
+  /// دالة مساعدة لعرض التنبيهات
+
+  void showCustomDialog(String title, String message) {
+    if (!mounted) return; // Ensure the widget is still in the tree
+
+    WidgetsBinding.instance.addPostFrameCallback((_) { // Ensure it runs on the UI thread
+      showDialog(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            title: Text(title),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop(); // Use dialogContext instead of context
+                },                child: const Text("موافق"),
+              ),
+            ],
+          );
+        },
+      );
+    });
+  }
+
+
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
+
+
+@override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -213,25 +246,36 @@ class _PaymentDialogState extends State<PaymentDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Vault Dropdown Menu
           DropdownButtonFormField<String>(
-            value: _selectedVaultName,
+            value: _selectedVaultid,
             decoration: const InputDecoration(
               labelText: 'اختر الخزنة',
+              labelStyle: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
               border: OutlineInputBorder(),
             ),
             items: _vaults.map((vault) {
               return DropdownMenuItem(
-                value: vault['name'].toString(),
-                child: Text('خزنة: ${vault['name']} (الرصيد: ${vault['balance']} جنيه)'),
+                value: vault['id'].toString(),
+                child: Text(
+                  // 'خزنة: ${vault['name']} (الرصيد: ${vault['balance']} جنيه)',
+                  'خزنة: ${vault['name']} ',
+                  textDirection: TextDirection.rtl, // Ensures RTL display
+                  textAlign: TextAlign.right, // Aligns text right within the dropdown item
+                ),
               );
             }).toList(),
             onChanged: (value) {
               setState(() {
-                _selectedVaultName = value;
+                _selectedVaultid = value;
               });
             },
+            isExpanded: true, // Better UX on mobile screens
           ),
+
           const SizedBox(height: 10),
           // Payment Amount Input
           TextField(
@@ -254,10 +298,6 @@ class _PaymentDialogState extends State<PaymentDialog> {
         ],
       ),
       actions: [
-        // TextButton(
-        //   onPressed: () => Navigator.of(context).pop(),
-        //   child: const Text('إلغاء'),
-        // ),
         ElevatedButton(
           onPressed: () {
             _submitPayment().then((_) {

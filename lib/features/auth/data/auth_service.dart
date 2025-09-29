@@ -1,5 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:system/Adminfeatures/auth/data/models/user_model.dart';
+import 'package:system/features/auth/data/models/user_model.dart';
 
 class AuthService {
   final SupabaseClient supabase;
@@ -36,41 +37,29 @@ class AuthService {
   }
 
   Future<void> signOut() async {
+
     await supabase.auth.signOut();
   }
 
-  // Future<void> recordLoginTime(String userId) async {
-  //   final SupabaseClient supabase = Supabase.instance.client;
-  //
-  //   final response = await supabase.from('logins').insert([
-  //     {
-  //       'user_id': userId,
-  //       'login_time': DateTime.now().toIso8601String(), // Current time
-  //       'logout_time': null, // Logout time will be updated later
-  //     }
-  //   ]);
-  //
-  //   if (response == null) {
-  //     print("Error recording login time: ${response}");
-  //   }
-  // }
+  Future<void> logoutUser(String userId) async {
+    try {
+      final logoutTime = DateFormat('yyyy-MM-dd HH:mm:ss',"en").format(DateTime.now().toLocal());
 
-  Future<void> recordLogoutTime(String userId) async {
-    final SupabaseClient supabase = Supabase.instance.client;
+      // final logoutTime = DateTime.now().toLocal().toIso8601String();
 
-    final response = await supabase
-        .from('logins')
-        .update({
-      'logout_time': DateTime.now().toIso8601String() // Set the logout time
-    })
-        .eq('user_id', userId) // Specify the user
-    // Only update if the logout time is null (i.e., user hasn't logged out yet)
-        ;
+      await supabase
+          .from('logins')
+          .update({
+        'logout_time': logoutTime,
+      })
+          .eq('user_id', userId)
+          .filter('logout_time', 'is', null); // 👈 يعادل IS NULL
 
-    if (response.error != null) {
-      print("Error recording logout time: ${response.error?.message}");
-    } else {
-      print("Logout time recorded successfully.");
+      await supabase.auth.signOut();
+    } catch (e) {
+      print('خطأ أثناء تسجيل وقت الخروج: $e');
     }
   }
-}
+
+  }
+

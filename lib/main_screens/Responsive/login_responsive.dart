@@ -6,14 +6,15 @@ import 'package:system/main_screens/loginLayouts/Loginmobile_layout.dart';
 import 'package:system/main_screens/loginLayouts/Logintablet_layout.dart';
 import 'package:system/core/shared/responsive.dart';
 
-import '../../main.dart';
+class LoginResponsive  extends StatelessWidget {
+  const LoginResponsive ({super.key});
 
-class loginResponsive extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Responsive(
       mobile: LoginMobileLayout(authService: AuthService(Supabase.instance.client),), // تصميم الموبايل
-      tablet: LoginTabletLayout(authService: AuthService(Supabase.instance.client),), // تصميم التابلت
+      // tablet: LoginTabletLayout(authService: AuthService(Supabase.instance.client),), // تصميم التابلت
+      tablet: LoginDesktopLayout(authService: AuthService(Supabase.instance.client),), // تصميم التابلت
       desktop: LoginDesktopLayout(authService: AuthService(Supabase.instance.client), // تصميم الكمبيوتر المكتبي
       )
     );

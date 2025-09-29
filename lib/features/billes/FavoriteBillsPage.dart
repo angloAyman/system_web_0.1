@@ -269,6 +269,8 @@ class _FavoriteBillsPageState extends State<FavoriteBillsPage> {
           }
 
           final favoriteBills = snapshot.data!;
+          // ترتيب القائمة بحيث تكون الأحدث في الأعلى
+          favoriteBills.sort((a, b) => b.date.compareTo(a.date));
 
           return ListView.builder(
             itemCount: favoriteBills.length,

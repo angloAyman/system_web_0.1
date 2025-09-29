@@ -7,6 +7,10 @@ import 'package:system/features/billes/data/models/bill_model.dart';
 import 'package:system/features/billes/data/repositories/bill_repository.dart';
 import 'package:system/features/billes/presentation/Dialog/adding/bill/showAddBillDialog.dart';
 import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/bill/showBillDetailsDialog.dart';
+import 'package:system/main_screens/mobile_screens/bills/dialog/add_Bills/showAddBillDialog_mobileLayout.dart';
+
+import 'dialog/details_bill/showBillDetailsDialogMobile.dart';
+import 'dialog/qr_code/QRViewExample.dart';
 
 class BillingPagemobile extends StatefulWidget {
   @override
@@ -35,10 +39,9 @@ class _BillingPagemobileState extends State<BillingPagemobile> {
     _searchController.addListener(_filterBills);
   }
 
-  void addBill(Bill bill, payment, report) async {
+  void addBill(Bill bill, payment, report, preport) async {
     try {
-      // await _billRepository.addBill(bill);
-      await _billRepository.addBill(bill, payment, report);
+      await _billRepository.addBill(bill, payment, report, preport);
       refreshBills();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,9 +67,16 @@ class _BillingPagemobileState extends State<BillingPagemobile> {
 
     setState(() {
       _filteredBills = _bills.where((bill) {
-        final matchesQuery = _searchCriteria == 'id'
-            ? bill.id.toString().contains(query)
-            : bill.customerName.toLowerCase().contains(query);
+        bool matchesQuery;
+
+        if (_searchCriteria == 'customerName') {
+          matchesQuery = bill.customerName.toLowerCase().contains(query);
+        } else if (_searchCriteria == 'id' || _searchCriteria == 'qrCode') {
+          // Search in bill.id for both ID and QR Code cases
+          matchesQuery = bill.id.toString().contains(query);
+        } else {
+          matchesQuery = false; // Default case
+        }
 
         final matchesStatus =
             _selectedStatus == null || bill.status == _selectedStatus;
@@ -193,7 +203,7 @@ class _BillingPagemobileState extends State<BillingPagemobile> {
         title: Text('الفواتير'),
         actions: [
           IconButton(
-            icon: Icon(Icons.account_balance),
+            icon: Icon(Icons.favorite),
             onPressed: () async {
               // final favoriteBill = _bills.firstWhere((bill) => bill.isFavorite);
               // await _addToFavorites(favoriteBill);
@@ -267,33 +277,56 @@ class _BillingPagemobileState extends State<BillingPagemobile> {
             ),
           ),
           // ToggleButtons for search criteria
-          ToggleButtons(
-            isSelected: [
-              _searchCriteria == 'id',
-              _searchCriteria == 'customerName',
-            ],
-            onPressed: (index) {
-              setState(() {
-                _searchCriteria = index == 0 ? 'id' : 'customerName';
-              });
-            },
-            children: const [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
-                child: Text('رقم الفاتورة'), // Bill ID
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
-                child: Text('اسم العميل'), // Customer Name
-              ),
-            ],
-            borderRadius: BorderRadius.circular(8.0),
-            borderColor: Colors.grey,
-            selectedBorderColor: Colors.blue,
-            fillColor: Colors.blue.withOpacity(0.1),
-            selectedColor: Colors.blue,
-            color: Colors.black,
-          ),
+
+          // ToggleButtons(
+          //   isSelected: [
+          //     _searchCriteria == 'id',
+          //     _searchCriteria == 'customerName',
+          //     _searchCriteria == 'qrCode',
+          //   ],
+          //   onPressed: (index) async {
+          //     if (index == 2) {
+          //       // If QR Code is selected
+          //       final scannedValue = await Navigator.push(
+          //         context,
+          //         MaterialPageRoute(builder: (context) => QRViewExample()),
+          //       );
+          //
+          //       if (scannedValue != null) {
+          //         setState(() {
+          //           _searchCriteria = 'qrCode';
+          //           _searchController.text = scannedValue; // Set scanned value
+          //           _filterBills(); // Trigger the search functionality
+          //         });
+          //       }
+          //     } else {
+          //       setState(() {
+          //         _searchCriteria = index == 0 ? 'id' : 'customerName';
+          //       });
+          //     }
+          //   },
+          //   children: const [
+          //     Padding(
+          //       padding: EdgeInsets.symmetric(horizontal: 8.0),
+          //       child: Text('رقم الفاتورة'), // Bill ID
+          //     ),
+          //     Padding(
+          //       padding: EdgeInsets.symmetric(horizontal: 8.0),
+          //       child: Text('اسم العميل'), // Customer Name
+          //     ),
+          //     Padding(
+          //       padding: EdgeInsets.symmetric(horizontal: 8.0),
+          //       child: Text('رمز QR'), // QR Code
+          //     ),
+          //   ],
+          //   borderRadius: BorderRadius.circular(8.0),
+          //   borderColor: Colors.grey,
+          //   selectedBorderColor: Colors.blue,
+          //   fillColor: Colors.blue.withOpacity(0.1),
+          //   selectedColor: Colors.blue,
+          //   color: Colors.black,
+          // ),
+
           Row(
             children: [
               const SizedBox(width: 8.0),
@@ -303,9 +336,9 @@ class _BillingPagemobileState extends State<BillingPagemobile> {
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: _searchCriteria == 'id'
-                        ? 'بحث برقم الفاتورة'
-                        : 'بحث باسم العميل',
+                    hintText: _searchCriteria == 'customerName'
+                        ? 'بحث باسم العميل'
+                        : 'بحث برقم الفاتورة',
                     // Update placeholder dynamically
                     prefixIcon: const Icon(Icons.search, color: Colors.black),
                     filled: true,
@@ -319,7 +352,6 @@ class _BillingPagemobileState extends State<BillingPagemobile> {
                 ),
               ),
               const SizedBox(width: 8.0),
-              // Space between ToggleButtons and TextField
 
               // Action Button for Starting Search
               // const SizedBox(width: 8.0),
@@ -361,18 +393,19 @@ class _BillingPagemobileState extends State<BillingPagemobile> {
                   itemBuilder: (context, index) {
                     final bill = _filteredBills[index];
                     return ListTile(
-                      title: Text(
-                        '${bill.id} -'
-                        ' ${bill.customerName} -'
-                        ' ${_formatDate(bill.date)} '// Format the date here
-                      ),
+                      title: Text('${bill.id} -'
+                          ' ${bill.customerName} -'
+                          ' ${_formatDate(bill.date)} ' // Format the date here
+                          ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
                               Text(" المبلغ المتبقي "),
-                              Text('  ${bill.total_price - bill.payment}',),
+                              Text(
+                                '  ${bill.total_price - bill.payment}',
+                              ),
                             ],
                           ),
                           Text(
@@ -383,14 +416,13 @@ class _BillingPagemobileState extends State<BillingPagemobile> {
                                   : Colors.orange,
                             ),
                           ),
-
                         ],
                       ),
                       trailing: IconButton(
                         icon: Icon(
                           bill.isFavorite
-                              ? Icons.account_balance
-                              : Icons.account_balance_outlined,
+                              ? Icons.favorite
+                              : Icons.favorite_border,
                           color: bill.isFavorite ? AppColors.primary : null,
                         ),
                         onPressed: () async {
@@ -420,7 +452,7 @@ class _BillingPagemobileState extends State<BillingPagemobile> {
                         },
                       ),
                       onTap: () {
-                        showBillDetailsDialog(context, bill);
+                        showBillDetailsDialogMobile(context, bill);
                         refreshBills();
                       },
                     );
@@ -433,7 +465,7 @@ class _BillingPagemobileState extends State<BillingPagemobile> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await showAddBillDialog(
+          await showAddBillDialogMobile(
             context: context,
             onAddBill: addBill,
           );

@@ -71,7 +71,7 @@ class _GetAllUsersScreenState extends State<GetAllUsersScreen> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User deleted successfully')),
+        const SnackBar(content: Text('UserLayouts deleted successfully')),
       );
 
       // Refresh the user list

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:system/Adminfeatures/auth/data/auth_service.dart';
+import 'package:system/features/auth/data/auth_service.dart';
 import 'package:system/core/shared/app_routes.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -49,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')
+      appBar: AppBar(title: const Text('تسجيل الدخول')
 
       ),
       body: Row(
@@ -57,25 +57,27 @@ class _LoginScreenState extends State<LoginScreen> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  TextField(
-                    controller: _usernameController,
-                    decoration: const InputDecoration(labelText: 'Username'),
-                  ),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(labelText: 'Password'),
-                  ),
-                  const SizedBox(height: 20),
-                  _isLoading
-                      ? const CircularProgressIndicator()
-                      : ElevatedButton(
-                    onPressed: _login,
-                    child: const Text('Login'),
-                  ),
-                ],
+              child: Center(
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _usernameController,
+                      decoration: const InputDecoration(labelText: 'اسم المستخدم'),
+                    ),
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(labelText: 'كلمة السر '),
+                    ),
+                    const SizedBox(height: 20),
+                    _isLoading
+                        ? const CircularProgressIndicator()
+                        : ElevatedButton(
+                      onPressed: _login,
+                      child: const Text('دخول'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

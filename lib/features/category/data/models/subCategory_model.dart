@@ -4,7 +4,7 @@ class Subcategory {
   final String name;
   final String unit;
   final double pricePerUnit;
-  final double discountPercentage;
+  final String discountPercentage;
   Subcategory({
     required this.id,
     required this.categoryId,
@@ -22,7 +22,7 @@ class Subcategory {
       name: json['name'] as String,
       unit: json['unit'] as String,
       pricePerUnit: (json['pricePerUnit'] as num).toDouble(),
-      discountPercentage: (json['discountPercentage'] as num).toDouble(),
+      discountPercentage: (json['discountPercentage'] as String),
     );
   }
 

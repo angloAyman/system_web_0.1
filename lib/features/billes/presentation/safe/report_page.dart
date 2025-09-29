@@ -1,8 +1,8 @@
 // //
 // // import 'package:flutter/material.dart';
-// // import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
-// // import 'package:system/Adminfeatures/billes/data/models/reportbill_model.dart';
-// // import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
+// // import 'package:system/features/billes/data/models/bill_model.dart';
+// // import 'package:system/features/billes/data/models/reportbill_model.dart';
+// // import 'package:system/features/billes/data/repositories/bill_repository.dart';
 // //
 // // class SafeReportPage extends StatefulWidget {
 // //   @override
@@ -45,7 +45,7 @@
 // //                   DataColumn(label: Text('ID')),
 // //                   DataColumn(label: Text('Customer')),
 // //                   DataColumn(label: Text('Date')),
-// //                   DataColumn(label: Text('User')), // New Column for User
+// //                   DataColumn(label: Text('UserLayouts')), // New Column for UserLayouts
 // //                   DataColumn(label: Text('payment')),
 // //                 ],
 // //                 rows: bills.map((bill) {
@@ -54,7 +54,7 @@
 // //                     DataCell(Text(bill.bill_id.toString())),
 // //                     DataCell(Text(bill.customerName)),
 // //                     DataCell(Text(bill.date)),
-// //                     DataCell(Text(bill.userName)), // Display User Name
+// //                     DataCell(Text(bill.userName)), // Display UserLayouts Name
 // //                     DataCell(Text(total.toStringAsFixed(2))),
 // //                   ]);
 // //                 }).toList(),
@@ -69,9 +69,9 @@
 //
 //
 // import 'package:flutter/material.dart';
-// import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
-// import 'package:system/Adminfeatures/billes/data/models/reportbill_model.dart';
-// import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
+// import 'package:system/features/billes/data/models/bill_model.dart';
+// import 'package:system/features/billes/data/models/reportbill_model.dart';
+// import 'package:system/features/billes/data/repositories/bill_repository.dart';
 //
 // class SafeReportPage extends StatefulWidget {
 //   @override
@@ -121,7 +121,7 @@
 //                   DataColumn(label: Text('ID')),
 //                   DataColumn(label: Text('Customer')),
 //                   DataColumn(label: Text('Date')),
-//                   DataColumn(label: Text('User')), // New Column for User
+//                   DataColumn(label: Text('UserLayouts')), // New Column for UserLayouts
 //                   DataColumn(label: Text('Payment')),
 //                 ],
 //                 rows: [
@@ -132,7 +132,7 @@
 //                       DataCell(Text(bill.bill_id.toString())),
 //                       DataCell(Text(bill.customerName)),
 //                       DataCell(Text(bill.date)),
-//                       DataCell(Text(bill.userName)), // Display User Name
+//                       DataCell(Text(bill.userName)), // Display UserLayouts Name
 //                       DataCell(Text(billTotal.toStringAsFixed(2))),
 //                     ]);
 //                   }).toList(),

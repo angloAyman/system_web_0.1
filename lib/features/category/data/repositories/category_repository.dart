@@ -1,8 +1,9 @@
 
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
-import 'package:system/Adminfeatures/category/data/models/subCategory_model.dart';
+import 'package:system/features/billes/data/models/bill_model.dart';
+import 'package:system/features/category/data/models/subCategory_model.dart';
 import '../models/category_model.dart';
 
 class CategoryRepository {
@@ -37,41 +38,61 @@ class CategoryRepository {
   }
 
 
-  Future<List<Bill>> getBillsFiltered({
+
+  Future<Map<String, dynamic>> getBillsFiltered({
     required String categoryName,
     String? subcategoryName,
     required DateTime startDate,
     required DateTime endDate,
-  }) async
-  {
-    // Create query to filter by date range first
-    final query = _client
-        .from('bills')
-        .select('*, bill_items(*)') // Include related bill items
-        .eq('bill_items.category_name', categoryName)
-        .eq('bill_items.subcategory_name', subcategoryName!)
-        .gte('date', startDate) // Filter by start date
-        .lte('date', endDate); // Filter by end date
-
-
+  }) async {
     try {
-      final response = await query;
+      // Fetch bills with related bill_items within the date range
+      final response = await _client
+          .from('bills')
+          .select('*, bill_items(*)') // Join bill_items
+          .gte('date', startDate) // Filter by start date
+          .lte('date', endDate) // Filter by end date
+          ; // Execute query
 
-      // Handle the case where the response is empty or null
       if (response == null || response.isEmpty) {
         throw Exception('No bills found for the given filters');
       }
 
-      // Parse the response and convert to Bill objects
-      final data = response as List;
-      return data.map((json) => Bill.fromJson(json)).toList();
+      // Parse the response into Bill objects
+      List<Bill> bills = (response as List).map((json) => Bill.fromJson(json)).toList();
+
+      // Initialize counters
+      int totalCategoryUsage = 0;
+      int totalSubcategoryUsage = 0;
+      double totalSubcategoryPrice = 0.0;
+      double totalcategoryPrice = 0.0;
+
+      for (var bill in bills) {
+        for (var item in bill.items) {
+          if (item.categoryName == categoryName) {
+            totalCategoryUsage++; // Count category usage
+            totalcategoryPrice += item.total_Item_price ?? 0.0; // Sum subcategory price
+
+          }
+          if (subcategoryName != null && item.subcategoryName == subcategoryName) {
+            totalSubcategoryUsage++; // Count subcategory usage
+            totalSubcategoryPrice += item.total_Item_price ?? 0.0; // Sum subcategory price
+          }
+        }
+      }
+
+      return {
+        'bills': bills,
+        'totalCategoryUsage': totalCategoryUsage,
+        'totalSubcategoryUsage': totalSubcategoryUsage,
+        'totalSubcategoryPrice': totalSubcategoryPrice,
+        'totalcategoryPrice': totalcategoryPrice,
+      };
     } catch (error) {
-      // Catch and log the error if query fails
       print('Error fetching filtered bills: $error');
       throw Exception('Failed to fetch filtered bills');
     }
   }
-
 
 
   // Add a new category
@@ -166,7 +187,7 @@ class CategoryRepository {
   }
 
   // Add a new subcategory
-  Future<void> addSubcategory(String categoryId, String name, String unit, double pricePerUnit,double discountPercentage) async {
+  Future<void> addSubcategory(String categoryId, String name, String unit, double pricePerUnit,String discountPercentage) async {
     final response = await _client.from('sub_categories').insert({
       'category_id': categoryId,
       'name': name,
@@ -247,57 +268,50 @@ class CategoryRepository {
   }
 
 
-  // // Fetch bills based on status
-  // Future<List<Bill>> getBillsByStatus(String status) async {
-  //   final response = await _client
-  //       .from('bills')
-  //       .select('*') // Fetch all fields
-  //       .eq('status', status) // Filter by status
-  //       ; // Ensure you call `.execute()` to get the response
-  //
-  //   // Debugging output
-  //   print('Raw Response Data: ${response}');
-  //
-  //   // Check for errors
-  //   if (response == null) {
-  //     throw Exception('Error fetching bills: ${response}');
-  //   }
-  //
-  //   // Extract the data
-  //   final data = response;
-  //
-  //   if (data is List) {
-  //     // Map the list of dynamic maps to a list of Bill objects
-  //     return data.map((item) => Bill.fromMap(item as Map<String, dynamic>)).toList();
-  //   } else {
-  //     throw Exception('Unexpected response format: ${data.runtimeType}');
-  //   }
-  // }
+
   Future<List<Bill>> getBillsByStatus(String status) async {
-    final response = await _client
-        .from('bills')
-        .select('*') // Fetch all fields
-        .eq('status', status) // Filter by status
-        ; // Make sure to call .execute() to get the response
+    try {
+      // Start building the query
+      final query = _client.from('bills').select('*, bill_items(*)');
 
-    // Debugging output
-    print('Raw Response Data: ${response}');
+      // Only apply status filter if not 'All'
+      if (status != 'All') {
+        query.eq('status', status);
+      }
 
-    // Check for errors
-    if (response == null) {
-      throw Exception('Error fetching bills: ${response}');
-    }
+      // Add consistent ordering
+      // query.order('created_at', ascending: false);
 
-    // Extract the data
-    final data = response;
+      final response = await query;
 
-    if (data is List) {
-      // Map the list of dynamic maps to a list of Bill objects
-      return data.map((item) => Bill.fromMap(item as Map<String, dynamic>)).toList();
-    } else {
-      throw Exception('Unexpected response format: ${data.runtimeType}');
+      // Debug output
+      debugPrint('Bills response (status: $status): ${response.toString()}');
+
+      // Handle null response
+      if (response == null) {
+        throw Exception('Null response received from server');
+      }
+
+      // Handle unexpected response format
+      if (response is! List) {
+        throw Exception('Expected List but got ${response.runtimeType}');
+      }
+
+      // Return empty list if no bills found
+      if (response.isEmpty) {
+        debugPrint('No bills found for status: $status');
+        return [];
+      }
+
+      // Convert to Bill objects
+      return response.map((json) => Bill.fromJson(json)).toList();
+
+    } catch (e) {
+      debugPrint('Error fetching bills by status: $e');
+      throw Exception('Failed to load bills: ${e.toString()}');
     }
   }
+
 
 
   Future<Map<String, int>> getTotalBillsByStatus() async {
@@ -393,6 +407,27 @@ class CategoryRepository {
       throw Exception('Error fetching category usage count by date range: $e');
     }
   }
+
+
+  Future<void> updateCategory(String categoryId, String newName) async {
+    await _client
+        .from('categories')
+        .update({'name': newName})
+        .eq('id', categoryId);
+  }
+
+  Future<void> updateSubcategory(String categoryId, String subcategoryId, String newName, String newUnit, double newPrice, double newDiscount) async {
+    await _client
+        .from('sub_categories')
+        .update({
+      'name': newName,
+      'unit': newUnit,
+      'pricePerUnit': newPrice,
+      'discountPercentage': newDiscount,
+    })
+        .eq('id', subcategoryId);
+  }
+
 
 
 

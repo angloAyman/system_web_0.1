@@ -4,7 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:system/features/billes/data/models/bill_model.dart';
 import 'package:system/features/category/data/models/category_model.dart';
 import 'package:system/features/category/data/models/subCategory_model.dart';
-import 'package:system/features/category/data/repositories/category_repository.dart'; // Replace with your repository imports
+import 'package:system/features/category/data/repositories/category_repository.dart';
+import 'package:system/features/report/UI/reportcategory/pdf/generatePdf.dart'; // Replace with your repository imports
 
 class ReportCategoryOperationsPage extends StatefulWidget {
   @override
@@ -118,10 +119,10 @@ class _ReportCategoryOperationsPageState
 
       // Extract data
       final billsList = result['bills'] as List<Bill>;
-      final totalCategoryUsage = result['totalCategoryUsage'] as int;
-      final totalSubcategoryUsage = result['totalSubcategoryUsage'] as int;
-      final totalSubcategoryPrice = result['totalSubcategoryPrice'] as double;
-      final totalcategoryPrice = result['totalcategoryPrice'] as double;
+      final totalCategoryUsage = result['totalCategoryUsage'] ;
+      final totalSubcategoryUsage = result['totalSubcategoryUsage'];
+      final totalSubcategoryPrice = result['totalSubcategoryPrice'] ;
+      final totalcategoryPrice = result['totalcategoryPrice'];
 
       // Check if the widget is still mounted before calling setState()
       if (mounted) {
@@ -229,7 +230,7 @@ class _ReportCategoryOperationsPageState
                   onPressed: () => _selectStartDate(context),
                   child: Text(
                     selectedStartDate == null
-                        ? 'Select Date'
+                        ? 'اختيار تاريخ'
                         : formatDate(selectedStartDate!),
                   ),
                 ),
@@ -238,7 +239,7 @@ class _ReportCategoryOperationsPageState
                   onPressed: () => _selectEndDate(context),
                   child: Text(
                     selectedEndDate == null
-                        ? 'Select Date'
+                        ? 'اختيار تاريخ'
                         : formatDate(selectedEndDate!),
                   ),
                 ),
@@ -246,9 +247,22 @@ class _ReportCategoryOperationsPageState
             ),
             SizedBox(height: 16),
             // Fetch Bills Button
-            ElevatedButton(
-              onPressed: _fetchFilteredBills,
-              child: Text('تقرير'),
+            Row(
+              children: [
+                ElevatedButton(
+                  onPressed: _fetchFilteredBills,
+                  child: Text('تقرير'),
+                ),
+
+                SizedBox(width: 10),
+
+                ElevatedButton(
+                  onPressed: () {
+                    generatePdf(bills, selectedCategory, selectedSubcategory);
+                  },
+                  child: Text(" PDF"),
+                ),
+              ],
             ),
             SizedBox(height: 16),
 
@@ -264,13 +278,13 @@ class _ReportCategoryOperationsPageState
                       style: TextStyle(fontSize: 16)),
                 ),
                 Center(
-                  child: Text('💰 اجمالي مبيعات الصنف الرئيسي : $totalcategoryPrice',                    style:
-                  TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text('💰 اجمالي مبيعات الصنف الرئيسي : $totalcategoryPrice',
+                      style:TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
 
                 Center(
-                  child: Text('💰 اجمالي مبيعات الصنف الفرعي: $totalSubcategoryPrice',                    style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text('💰 اجمالي مبيعات الصنف الفرعي: $totalSubcategoryPrice',
+                      style:TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

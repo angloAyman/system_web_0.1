@@ -7,7 +7,7 @@ class business_customers {
   final String personPhone;
   final String personphonecall;
   final String address;
-  final String discount;
+  // final String discount;
 
   business_customers({
     required this.id,
@@ -18,7 +18,7 @@ class business_customers {
     required this.personPhone,
     required this.personphonecall,
     required this.address,
-    required this.discount,
+    // required this.discount,
   });
 
   // Factory method for JSON deserialization
@@ -32,7 +32,7 @@ class business_customers {
       personPhone: json['personPhone'] as String,
       personphonecall: json['personphonecall'] as String,
       address: json['address'] as String,
-      discount: json['discount'] as String,
+      // discount: json['discount'] as String,
     );
   }
 
@@ -47,7 +47,7 @@ class business_customers {
       'person_phone': personPhone,
       'personphonecall': personphonecall,
       'address': address,
-      'discount': discount,
+      // 'discount': discount,
     };
   }
 
@@ -62,7 +62,7 @@ class business_customers {
       personPhone: data['personPhone'] ,
       personphonecall: data['personphonecall'] ,
       address: data['address'] ,
-      discount: data['discount'] ,
+      // discount: data['discount'] ,
     );
   }
 
@@ -77,7 +77,7 @@ class business_customers {
       'person_phone': personPhone,
       'personphonecall': personphonecall,
       'address': address,
-      'discount': discount,
+      // 'discount': discount,
     };
   }
 

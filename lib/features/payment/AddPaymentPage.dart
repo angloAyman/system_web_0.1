@@ -1,4 +1,4 @@
-
+//اضافة دفع
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -41,12 +41,18 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
     // الحصول على معرف المستخدم الحالي
     final userId = Supabase.instance.client.auth.currentUser?.id;
 
-    if (userId == null|| amount == null || amount <= 0 || _selectedVaultId == null) {
+    if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تعذر تحديد المستخدم الحالي. يرجى تسجيل الدخول مرة أخرى.')),
       );
       return;
     }
+      // if (userId == null|| amount == null || amount <= 0 || _selectedVaultId == null) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(content: Text('تعذر تحديد المستخدم الحالي. يرجى تسجيل الدخول مرة أخرى.')),
+    //   );
+    //   return;
+    // }
 
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -132,10 +138,6 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
           .update({'status': status})
           .eq('id', widget.billId);
 
-      // await Supabase.instance.client
-      //     .from('bills')
-      //     .update({'totalPayment': totalPayment, 'status': status})
-      //     .eq('id', widget.billId);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('تم تحديث حالة الفاتورة إلى: $status')),
@@ -171,9 +173,9 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
           .update({'payment': updatedTotalPayment})
           .eq('id', widget.billId);
 
-      // if (updateResponse == null || updateResponse.isEmpty) {
-      //   throw Exception('Failed to update bill total payment.');
-      // }
+      if (updateResponse == null || updateResponse.isEmpty) {
+        throw Exception('Failed to update bill total payment.');
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تم تحديث إجمالي المدفوعات بنجاح!')),
@@ -202,9 +204,16 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
   // Function to fetch vaults from Supabase
   Future<void> _fetchVaults() async {
     try {
+      // final response = await Supabase.instance.client
+      //     .from('vaults') // Replace with your vault table name
+      //     .select('id, name'); // Fetch vault ID and name
+
       final response = await Supabase.instance.client
-          .from('vaults') // Replace with your vault table name
-          .select('id, name'); // Fetch vault ID and name
+          .from('vaults')
+          .select('id,name,balance,isActive')
+          .eq('isActive', true); // ✅ شرط يجيب بس الـ Active
+
+
 
       setState(() {
         _vaults = List<Map<String, dynamic>>.from(response);

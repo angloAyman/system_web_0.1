@@ -21,11 +21,13 @@ ThemeData getThemeDataDark() => ThemeData(
         backgroundColor: AppColorsDark.BottomNavigationBarbackgroundColor,
         //
       ),
-  scaffoldBackgroundColor: AppColors.back,
-  brightness: Brightness.light,
+  // scaffoldBackgroundColor: AppColors.back,
+  // brightness: Brightness.light,
+  brightness: Brightness.dark, // Change from light to dark
+scaffoldBackgroundColor: Color(0xFF121212), // لون خلفية داكن
 
-      colorScheme: ColorScheme.light(
-        background: AppColors.background,
+      colorScheme: ColorScheme.dark(
+        background: AppColors.back,
         onSurface: AppColors.surface,
         surface: AppColors.back,
 

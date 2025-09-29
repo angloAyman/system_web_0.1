@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:system/Adminfeatures/Vaults/data/repositories/supabase_vault_repository.dart';
+import 'package:system/features/Vaults/data/repositories/supabase_vault_repository.dart';
 
 class VaultTransferDialog extends StatefulWidget {
   @override
@@ -32,7 +32,7 @@ class _VaultTransferDialogState extends State<VaultTransferDialog> {
   }
 
   Future<void> _transferFunds() async {
-    final amount = double.tryParse(_amountController.text) ?? 0.0;
+    final amount = int.tryParse(_amountController.text) ?? 0;
 
     if (_fromVaultId == null || _toVaultId == null) {
       _showMessage('يرجى اختيار الخزنة المصدر والخزنة الوجهة.');
@@ -69,16 +69,45 @@ class _VaultTransferDialogState extends State<VaultTransferDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // DropdownButtonFormField<String>(
+          //   value: _fromVaultId,
+          //   decoration: const InputDecoration(
+          //     labelText: 'اختر الخزنة المصدر',
+          //     labelStyle: TextStyle(),
+          //     border: OutlineInputBorder(),
+          //   ),
+          //   items: _vaults.map((vault) {
+          //     return DropdownMenuItem(
+          //       value: vault['id'].toString(),
+          //       child: Text('خزنة: ${vault['name']} (الرصيد: ${vault['balance']} جنيه)'),
+          //     );
+          //   }).toList(),
+          //   onChanged: (value) {
+          //     setState(() {
+          //       _fromVaultId = value;
+          //     });
+          //   },
+          // ),
+
           DropdownButtonFormField<String>(
             value: _fromVaultId,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'اختر الخزنة المصدر',
-              border: OutlineInputBorder(),
+              labelStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              border: const OutlineInputBorder(),
             ),
             items: _vaults.map((vault) {
               return DropdownMenuItem(
                 value: vault['id'].toString(),
-                child: Text('خزنة: ${vault['name']} (الرصيد: ${vault['balance']} جنيه)'),
+                child: Text(
+                  'خزنة: ${vault['name']} (الرصيد: ${vault['balance']} جنيه)',
+                  textDirection: TextDirection.rtl, // Ensures RTL direction inside item
+                  textAlign: TextAlign.right, // Aligns text to the right for clarity
+                ),
               );
             }).toList(),
             onChanged: (value) {
@@ -86,18 +115,47 @@ class _VaultTransferDialogState extends State<VaultTransferDialog> {
                 _fromVaultId = value;
               });
             },
+            isExpanded: true, // Recommended for mobile dropdown width
           ),
+
           const SizedBox(height: 10),
+          // DropdownButtonFormField<String>(
+          //   value: _toVaultId,
+          //   decoration: const InputDecoration(
+          //     labelText: 'اختر الخزنة الوجهة',
+          //     border: OutlineInputBorder(),
+          //   ),
+          //   items: _vaults.map((vault) {
+          //     return DropdownMenuItem(
+          //       value: vault['id'].toString(),
+          //       child: Text('خزنة: ${vault['name']} (الرصيد: ${vault['balance']} جنيه)'),
+          //     );
+          //   }).toList(),
+          //   onChanged: (value) {
+          //     setState(() {
+          //       _toVaultId = value;
+          //     });
+          //   },
+          // ),
           DropdownButtonFormField<String>(
             value: _toVaultId,
             decoration: const InputDecoration(
               labelText: 'اختر الخزنة الوجهة',
+              labelStyle: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
               border: OutlineInputBorder(),
             ),
             items: _vaults.map((vault) {
               return DropdownMenuItem(
                 value: vault['id'].toString(),
-                child: Text('خزنة: ${vault['name']} (الرصيد: ${vault['balance']} جنيه)'),
+                child: Text(
+                  'خزنة: ${vault['name']} (الرصيد: ${vault['balance']} جنيه)',
+                  textDirection: TextDirection.rtl, // Ensures RTL display
+                  textAlign: TextAlign.right, // Aligns text right within the dropdown item
+                ),
               );
             }).toList(),
             onChanged: (value) {
@@ -105,7 +163,10 @@ class _VaultTransferDialogState extends State<VaultTransferDialog> {
                 _toVaultId = value;
               });
             },
+            isExpanded: true, // Better UX on mobile screens
           ),
+
+
           const SizedBox(height: 10),
           TextField(
             controller: _amountController,

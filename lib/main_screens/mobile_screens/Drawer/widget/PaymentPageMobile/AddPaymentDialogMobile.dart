@@ -5,8 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AddPaymentDialogMobile extends StatefulWidget {
   final int billId;
-  final int payment;
-  final int total_price;
+  final double payment;
+  final double total_price;
   final String customerName;
   final DateTime billDate;
   // final int vaultId; // <-- Add this field
@@ -174,9 +174,13 @@ class _AddPaymentDialogMobileState extends State<AddPaymentDialogMobile> {
   // Function to fetch vaults from Supabase
   Future<void> _fetchVaults() async {
     try {
+      // final response = await Supabase.instance.client
+      //     .from('vaults') // Replace with your vault table name
+      //     .select('id, name'); // Fetch vault ID and name
       final response = await Supabase.instance.client
-          .from('vaults') // Replace with your vault table name
-          .select('id, name'); // Fetch vault ID and name
+          .from('vaults')
+          .select('id,name,balance,isActive')
+          .eq('isActive', true); // ✅ شرط يجيب بس الـ Active
 
       setState(() {
         _vaults = List<Map<String, dynamic>>.from(response);

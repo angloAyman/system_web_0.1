@@ -1,9 +1,11 @@
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AddPaymentDialog extends StatefulWidget {
   final int billId;
+  final double payment;
   final double total_price;
   final String customerName;
   final DateTime billDate;
@@ -12,6 +14,7 @@ class AddPaymentDialog extends StatefulWidget {
   const AddPaymentDialog({
     Key? key,
     required this.billId,
+    required this.payment,
     required this.total_price,
     required this.customerName,
     required this.billDate,
@@ -31,27 +34,29 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
   @override
   void initState() {
     super.initState();
-    _fetchVaults(); // Fetch vaults on initialization
+    _fetchVaults();
+    // Fetch vaults on initialization
   }
 
-  Future<void> _submitPayment() async {
-    final amount = double.tryParse(_amountController.text);
 
+
+
+  Future<bool> _submitPayment() async {
+    final amount = double.tryParse(_amountController.text);
     // الحصول على معرف المستخدم الحالي
     final userId = Supabase.instance.client.auth.currentUser?.id;
-
     if (userId == null|| amount == null || amount <= 0 || _selectedVaultId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تعذر تحديد المستخدم الحالي. يرجى تسجيل الدخول مرة أخرى.')),
       );
-      return;
+      return false;
     }
 
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('يرجى إدخال مبلغ صالح.')),
       );
-      return;
+      return false;
     }
 
     setState(() {
@@ -76,6 +81,16 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
           .insert(payment)
           .select();
 
+      final billUpdateResponse = await Supabase.instance.client
+          .from('bills')
+          .update({
+        'payment': widget.payment + amount,
+      })
+          .eq('id', widget.billId,)
+          .select()
+          .single();
+
+
       if (paymentResponse == null || paymentResponse.isEmpty) {
         throw Exception('فشل في إضافة سجل الدفع.');
       }
@@ -88,6 +103,8 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
       );
 
       Navigator.pop(context); // إغلاق الـ Dialog
+      // Navigator.pop(context); // إغلاق الـ Dialog
+      return true ;
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('فشل في إضافة الدفع: $error')),
@@ -97,13 +114,17 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
         _isSubmitting = false;
       });
     }
+    return true ;
   }
+
+
+
+
 
   Future<void> _updateBillStatus() async {
     try {
       // Fetch all payments for the current bill
       final payments = await _fetchPayments(widget.billId);
-
       // Calculate the total payment
       final totalPayment = payments.fold<double>(
         0.0,
@@ -153,9 +174,15 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
   // Function to fetch vaults from Supabase
   Future<void> _fetchVaults() async {
     try {
+      // final response = await Supabase.instance.client
+      //     .from('vaults') // Replace with your vault table name
+      //     .select('id, name'); // Fetch vault ID and name
+
       final response = await Supabase.instance.client
-          .from('vaults') // Replace with your vault table name
-          .select('id, name'); // Fetch vault ID and name
+          .from('vaults')
+          .select('id,name,isActive')
+          .eq('isActive', true); // ✅ شرط يجيب بس الـ Active
+
 
       setState(() {
         _vaults = List<Map<String, dynamic>>.from(response);
@@ -193,96 +220,115 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('إضافة الدفع'),
-      content: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'رقم الفاتورة: ${widget.billId}',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            Text(
-              'اسم العميل: ${widget.customerName}',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            Text(
-              'تاريخ الفاتورة: ${widget.billDate}',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                labelText: 'المبلغ',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            _vaultDropdown(), // Dropdown for selecting vaults
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'إجمالي الفاتورة: ${widget.total_price}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  FutureBuilder<List<Map<String, dynamic>>>(
-                    future: _fetchPayments(widget.billId),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (snapshot.hasError) {
-                        return Text('خطأ في تحميل المدفوعات: ${snapshot.error}');
-                      }
-                      final payments = snapshot.data ?? [];
-                      if (payments.isEmpty) {
-                        return const Text('لا توجد مدفوعات لهذه الفاتورة.');
-                      }
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'رقم الفاتورة: ${widget.billId}',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          Text(
+            'اسم العميل: ${widget.customerName}',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          Text(
+            'تاريخ الفاتورة: ${DateFormat('yyyy-MM-dd').format(widget.billDate)}',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
 
-                      // Calculate the total payment for the bill
-                      final totalPayment = payments.fold<double>(
-                        0.0,
-                            (sum, payment) => sum + (payment['payment'] ?? 0),
-                      );
+          const SizedBox(height: 16),
+          TextField(
+            controller: _amountController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'المبلغ',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _vaultDropdown(), // Dropdown for selecting vaults
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'إجمالي الفاتورة: ${widget.total_price}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                FutureBuilder<List<Map<String, dynamic>>>(
+                  future: _fetchPayments(widget.billId),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Text('خطأ في تحميل المدفوعات: ${snapshot.error}');
+                    }
+                    final payments = snapshot.data ?? [];
+                    if (payments.isEmpty) {
+                      return const Text('لا توجد مدفوعات لهذه الفاتورة.');
+                    }
 
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ...payments.map((payment) {
+                    // Calculate the total payment for the bill
+                    // final totalPayment = payments.fold<double>(
+                    //   0.0,
+                    //       (sum, payment) => sum + (payment['payment'] ?? 0),
+                    // );
+
+                    // return Column(
+                    //   crossAxisAlignment: CrossAxisAlignment.start,
+                    //   children: [
+                    //     ...payments.map((payment) {
+                    //       String formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.parse(payment['date']));
+                    //
+                    //       final userName = payment['users']?['name'] ?? 'غير معروف';
+                    //       return Padding(
+                    //
+                    //         padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    //         child: Text(
+                    //           'المبلغ: ${payment['payment']} - التاريخ: $formattedDate - المستخدم: $userName',
+                    //         ),                            );
+                    //     }).toList(),
+                    //     const Divider(height: 16, thickness: 1),
+                    //     Text(
+                    //       'إجمالي المدفوعات: ${totalPayment.toStringAsFixed(2)} جنيه مصري',
+                    //       style: const TextStyle(fontWeight: FontWeight.bold),
+                    //     ),
+                    //   ],
+                    // );
+                    return SizedBox(
+                      height: 200, // تحديد ارتفاع مناسب للتمرير
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: payments.map((payment) {
+                            String formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.parse(payment['date']));
                             final userName = payment['users']?['name'] ?? 'غير معروف';
+
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 4.0),
                               child: Text(
-                                'المبلغ: ${payment['payment']} - التاريخ: ${payment['date']} - المستخدم: $userName',
+                                'المبلغ: ${payment['payment']} - التاريخ: $formattedDate - المستخدم: $userName',
                               ),
                             );
                           }).toList(),
-                          const Divider(height: 16, thickness: 1),
-                          Text(
-                            'إجمالي المدفوعات: ${totalPayment.toStringAsFixed(2)} جنيه مصري',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              ),
+                        ),
+                      ),
+                    );
+
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       actions: [
         TextButton(

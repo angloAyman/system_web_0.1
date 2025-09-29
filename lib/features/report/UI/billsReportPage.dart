@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:printing/printing.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
-import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
+import 'package:system/features/billes/data/models/bill_model.dart';
+import 'package:system/features/billes/data/repositories/bill_repository.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:system/Adminfeatures/report/UI/widget/BillDataSource_grid.dart';
+import 'package:system/features/report/UI/widget/BillDataSource_grid.dart';
 
 class billsReportPage extends StatefulWidget {
   @override
@@ -197,7 +197,8 @@ class _billsReportPageState extends State<billsReportPage> {
           ),
         ],
       ),
-      body: Column(
+      body:
+      Column(
         children: [
           // Dropdown for search criteria
           DropdownButton<String>(

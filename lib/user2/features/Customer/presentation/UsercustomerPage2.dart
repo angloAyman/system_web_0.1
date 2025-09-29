@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import '../../../../features/customer/presentation/normal/normal_customer_page.dart';
 import '../../../../features/customer/presentation/business/business_customer_page.dart';
 
-class UserCustomerPage extends StatefulWidget {
+class UserCustomerPage2 extends StatefulWidget {
   @override
-  _UserCustomerPageState createState() => _UserCustomerPageState();
+  _UserCustomerPage2State createState() => _UserCustomerPage2State();
 }
 
-class _UserCustomerPageState extends State<UserCustomerPage> {
+class _UserCustomerPage2State extends State<UserCustomerPage2> {
   String _selectedCustomerType = 'normal'; // Default type: normal customers
   String _searchQuery = ''; // Search query to filter customers
 
@@ -18,7 +18,7 @@ class _UserCustomerPageState extends State<UserCustomerPage> {
         title: Text('إدارة العملاء'),
         actions: [
           TextButton.icon(onPressed: (){
-            Navigator.pushReplacementNamed(context, '/userMainScreen'); // توجيه المستخدم إلى صفحة تسجيل الدخول
+            Navigator.pushReplacementNamed(context, '/userMainScreen2'); // توجيه المستخدم إلى صفحة تسجيل الدخول
           }, label: Icon(Icons.home)),
         ],
       ),
@@ -55,10 +55,10 @@ class _UserCustomerPageState extends State<UserCustomerPage> {
                       value: 'normal',
                       child: Text('العملاء'),
                     ),
-                    DropdownMenuItem(
-                      value: 'business',
-                      child: Text('العملاء التجارين'),
-                    ),
+                    // DropdownMenuItem(
+                    //   value: 'business',
+                    //   child: Text('العملاء التجارين'),
+                    // ),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -72,9 +72,8 @@ class _UserCustomerPageState extends State<UserCustomerPage> {
 
           // Display the selected table
           Expanded(
-            child: _selectedCustomerType == 'normal'
-                ? NormalCustomerPage(searchQuery: _searchQuery) // Page for normal customers
-                : BusinessCustomerPage(searchQuery: _searchQuery), // Page for business customers
+            child:NormalCustomerPage(searchQuery: _searchQuery) // Page for normal customers
+                // : BusinessCustomerPage(searchQuery: _searchQuery), // Page for business customers
           ),
         ],
       ),

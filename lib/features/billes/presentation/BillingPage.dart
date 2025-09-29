@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:system/core/constants/app_constants.dart';
 import 'package:system/core/themes/AppColors/them_constants.dart';
-import 'package:system/Adminfeatures/billes/FavoriteBillsPage.dart';
-import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
-import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
-import 'package:system/Adminfeatures/billes/presentation/Dialog/adding/bill/showAddBillDialog.dart';
-import 'package:system/Adminfeatures/billes/presentation/Dialog/details-editing-pdf/bill/showBillDetailsDialog.dart';
+import 'package:system/features/billes/FavoriteBillsPage.dart';
+import 'package:system/features/billes/data/models/bill_model.dart';
+import 'package:system/features/billes/data/repositories/bill_repository.dart';
+import 'package:system/features/billes/presentation/Dialog/adding/bill/showAddBillDialog.dart';
+import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/bill/showBillDetailsDialog.dart';
 
 class BillingPage extends StatefulWidget {
   @override
@@ -35,10 +35,10 @@ class _BillingPageState extends State<BillingPage> {
     _searchController.addListener(_filterBills);
   }
 
-  void addBill(Bill bill, payment, report) async {
+  void addBill(Bill bill, payment, report, preport) async {
     try {
       // await _billRepository.addBill(bill);
-      await _billRepository.addBill(bill, payment, report);
+      await _billRepository.addBill(bill, payment, report, preport);
       refreshBills();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -135,20 +135,21 @@ class _BillingPageState extends State<BillingPage> {
       },
     );
   }
-
   void _toggleFavoriteStatusAndUpdateDescription(Bill bill) async {
     final updatedDescription =
-        await _showDescriptionDialog(context, bill.id, bill.description);
+    await _showDescriptionDialog(context, bill.id, bill.description);
 
     if (updatedDescription != null) {
       try {
+        // ✅ Update the bill's favorite status and description in Supabase
         await _billRepository.updateFavoriteStatusAndDescription(
           billId: bill.id,
-          isFavorite: !bill.isFavorite, // Toggle the favorite status
-          description: updatedDescription, // Set the updated description
+          isFavorite: !bill.isFavorite, // Toggle favorite status
+          description: updatedDescription, // Update description
         );
 
-        // Update the UI
+        if (!mounted) return; // ✅ Ensure the widget is still mounted
+
         setState(() {
           bill.isFavorite = !bill.isFavorite;
           bill.description = updatedDescription;
@@ -156,17 +157,50 @@ class _BillingPageState extends State<BillingPage> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  'تمت ${bill.isFavorite ? "إضافة" : "إزالة"} الفاتورة للمفضلة')),
+            content: Text(
+                'تمت ${bill.isFavorite ? "إضافة" : "إزالة"} الفاتورة للمفضلة'),
+          ),
         );
       } catch (e) {
-        print(e);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('حدث خطأ أثناء تحديث الفاتورة: $e')),
         );
       }
     }
   }
+
+  // void _toggleFavoriteStatusAndUpdateDescription(Bill bill) async {
+  //   final updatedDescription =
+  //       await _showDescriptionDialog(context, bill.id, bill.description);
+  //
+  //   if (updatedDescription != null) {
+  //     try {
+  //       await _billRepository.updateFavoriteStatusAndDescription(
+  //         billId: bill.id,
+  //         isFavorite: !bill.isFavorite, // Toggle the favorite status
+  //         description: updatedDescription, // Set the updated description
+  //       );
+  //
+  //       // Update the UI
+  //       setState(() {
+  //         bill.isFavorite = !bill.isFavorite;
+  //         bill.description = updatedDescription;
+  //       });
+  //
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //             content: Text(
+  //                 'تمت ${bill.isFavorite ? "إضافة" : "إزالة"} الفاتورة للمفضلة')),
+  //       );
+  //     } catch (e) {
+  //       print(e);
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('حدث خطأ أثناء تحديث الفاتورة: $e')),
+  //       );
+  //     }
+  //   }
+  // }
 
   // Method to format the date to DD/MM/YYYY format
   String _formatDate(dynamic date) {
@@ -192,12 +226,6 @@ class _BillingPageState extends State<BillingPage> {
       appBar: AppBar(
         title: Text('الفواتير'),
         actions: [
-          TextButton.icon(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context,
-                    '/adminHome'); // توجيه المستخدم إلى صفحة تسجيل الدخول
-              },
-              label: Icon(Icons.home)),
           IconButton(
             icon: Icon(Icons.account_balance),
             onPressed: () async {
@@ -209,6 +237,12 @@ class _BillingPageState extends State<BillingPage> {
                   builder: (context) => FavoriteBillsPage(),
                 ),
               );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.home),
+            onPressed: () async {
+              Navigator.pushReplacementNamed(context, '/adminHome');
             },
           ),
         ],
@@ -233,8 +267,6 @@ class _BillingPageState extends State<BillingPage> {
                       : _selectedStatus == AppStrings.openInvoice
                           ? 2
                           : 3,
-              // ? 3
-
               onTap: _onNavBarItemTapped,
               items: const [
                 BottomNavigationBarItem(
@@ -354,6 +386,8 @@ class _BillingPageState extends State<BillingPage> {
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return Center(child: Text('لا توجد فواتير حالياً.'));
                 }
+//لترتيب القائمة تنازليا حسب رقم الفاتورة (bill.id)،
+                _filteredBills.sort((a, b) => b.id.compareTo(a.id));
 
                 return ListView.builder(
                   itemCount: _filteredBills.length,
@@ -363,15 +397,27 @@ class _BillingPageState extends State<BillingPage> {
                       title: Text(
                         '${bill.id} -'
                         ' ${bill.customerName} -'
-                        ' ${_formatDate(bill.date)}', // Format the date here
+                        ' ${_formatDate(bill.date)} '// Format the date here
                       ),
-                      subtitle: Text(
-                        'الحالة: ${bill.status}',
-                        style: TextStyle(
-                          color: bill.status == 'تم الدفع'
-                              ? Colors.green
-                              : Colors.orange,
-                        ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(" المبلغ المتبقي "),
+                              Text('${bill.total_price - bill.payment}',),
+                            ],
+                          ),
+                          Text(
+                            'الحالة: ${bill.status}',
+                            style: TextStyle(
+                              color: bill.status == 'تم الدفع'
+                                  ? Colors.green
+                                  : Colors.orange,
+                            ),
+                          ),
+
+                        ],
                       ),
                       trailing: IconButton(
                         icon: Icon(
@@ -385,12 +431,10 @@ class _BillingPageState extends State<BillingPage> {
                             if (bill.isFavorite) {
                               // Call the method to remove from favorites
                               _billRepository.removeFromFavorites(bill);
-
                               // Update the UI
                               setState(() {
                                 bill.isFavorite = false;
                               });
-
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                     content:
@@ -409,11 +453,9 @@ class _BillingPageState extends State<BillingPage> {
                         },
                       ),
                       onTap: () {
-                        showBillDetailsDialog(context,bill);
+                        showBillDetailsDialog(context, bill);
                         refreshBills();
-
                       },
-
                     );
                   },
                 );
@@ -423,8 +465,8 @@ class _BillingPageState extends State<BillingPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showAddBillDialog(
+        onPressed: () async {
+          await showAddBillDialog(
             context: context,
             onAddBill: addBill,
           );

@@ -381,6 +381,8 @@ import 'package:system/features/customer/data/model/business_customer_model.dart
 import 'package:system/features/customer/data/model/normal_customer_model.dart';
 import 'package:system/features/customer/presentation/widgets/totalPaymentDialog.dart';
 
+import '../../../../features/report/UI/customer/pdf.dart';
+
 class CustomerSelectionPage extends StatefulWidget {
   @override
   _CustomerSelectionPageState createState() => _CustomerSelectionPageState();
@@ -871,11 +873,21 @@ class _CustomerSelectionPageState extends State<CustomerSelectionPage> {
     customerNameController.dispose();
     super.dispose();
   }
-
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("كشف حساب عميل")),
+      appBar: AppBar(title: Text("كشف حساب عميل"),
+        actions: [
+          TextButton.icon(onPressed: (){
+            Navigator.pushReplacementNamed(context, '/userMainScreen'); // توجيه المستخدم إلى صفحة تسجيل الدخول
+          }, label: Icon(Icons.home,size: 25,)),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -1054,13 +1066,27 @@ class _CustomerSelectionPageState extends State<CustomerSelectionPage> {
                                   // }
                                 },
                               ),
+
+                              ElevatedButton.icon(
+                                icon: const Icon(Icons.payment, color: Colors.white),
+                                label: const Text("استخراج PDF"),
+                                onPressed: () async {
+                                  if (customerNameController.text.isEmpty) {
+                                    _showError('الرجاء اختيار عميل أولاً');
+                                    return;
+                                  }
+                                  await generateBillsPDF(context, filteredBills, startDate, endDate, customerNameController.text.trim(),searchByDate);
+
+                                },
+                              ),
+
                             ],
                           ),
                           SizedBox(
                             width: 5,
                           ),
                           Text(
-                            'اجمالي الفاتير : ${filteredBills.fold(0.0, (sum, bill) => sum + bill.total_price).toStringAsFixed(2)}',
+                            'اجمالي الفواتير : ${filteredBills.fold(0.0, (sum, bill) => sum + bill.total_price).toStringAsFixed(2)}',
                             style: TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold,
                               color: Colors.blue,
@@ -1273,9 +1299,10 @@ class _CustomerSelectionPageState extends State<CustomerSelectionPage> {
                                         showAddPaymentDialog(
                                             context,
                                             bill.id,
+                                            bill.payment,
                                             bill.customerName,
                                             bill.date as DateTime,
-                                            bill.total_price as double);
+                                            bill.total_price );
                                       },
                                       child: Text("اضافة مدفوعات"),
                                     ),
@@ -1321,15 +1348,17 @@ class _CustomerSelectionPageState extends State<CustomerSelectionPage> {
 void showAddPaymentDialog(
   BuildContext context,
   int billId,
+    double payment,
   String customerName,
   DateTime billDate,
-  double total_price,
+    double total_price,
 ) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return AddPaymentDialog(
         billId: billId,
+        payment: payment,
         customerName: customerName,
         billDate: billDate,
         total_price: total_price,

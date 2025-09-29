@@ -1,6 +1,6 @@
 class AttendanceModel {
   final String id; // Unique ID for the attendance record
-  final String userId; // User ID of the person
+  final String userId; // UserLayouts ID of the person
   final DateTime createdAt; // Date and time of attendance
   final String status; // Attendance status, e.g., "present", "absent", "dismissed"
 

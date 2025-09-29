@@ -6,6 +6,8 @@ import 'package:system/features/billes/data/repositories/bill_repository.dart';
 import 'package:system/features/billes/presentation/Dialog/adding/bill/showAddBillDialog.dart';
 import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/bill/showBillDetailsDialog.dart';
 
+import '../../features/Vaults/Presentation/dialog/PaymentDialog.dart';
+
 class userMainScreen extends StatefulWidget {
   const userMainScreen({super.key});
 
@@ -26,9 +28,9 @@ class _userMainScreenState extends State<userMainScreen> {
   }
 
   // Function to add a bill
-  void addBill(Bill bill, payment, report) async {
+  void addBill(Bill bill, payment, report, preport) async {
     try {
-      await _billRepository.addBill(bill, payment, report);
+      await _billRepository.addBill(bill, payment, report, preport);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تم إضافة الفاتورة بنجاح')),
       );
@@ -127,10 +129,29 @@ class _userMainScreenState extends State<userMainScreen> {
                          },
                        ),
                        _buildButton(
-                         text: "سحب مبلغ",
+                         text: "اضافة مصروفات",
                          icon: Icons.payment,
+                         // onPressed: () {
+                         //   Navigator.pushReplacementNamed(context, '/UserPayment');
+                         // },
                          onPressed: () {
-                           Navigator.pushReplacementNamed(context, '/UserPayment');
+                           showDialog(
+                             context: context,
+                             builder: (context) => PaymentDialog(),
+                           ).then((_) {
+                             // Call _refreshVaults after the dialog is closed
+                             ScaffoldMessenger.of(context).showSnackBar(
+                               SnackBar(content: Text("تم اضافة المصروفات")),
+                             );
+                           });
+                         },
+
+                       ),
+                       _buildButton(
+                         text: "كشف حساب",
+                         icon: Icons.inventory_rounded,
+                         onPressed: () {
+                           Navigator.pushReplacementNamed(context, '/CustomerSelectionPage');
                          },
                        ),
                        // _buildButton(

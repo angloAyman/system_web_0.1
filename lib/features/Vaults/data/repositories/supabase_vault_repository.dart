@@ -52,11 +52,28 @@ class SupabaseVaultRepository implements VaultRepository {
   }
 
 
-  Future<List<Map<String, dynamic>>> getPaymentsByVaultId(String name) async {
+  Future<void> updateVaultStatus(String id, bool isActive) async {
+    final response = await Supabase.instance.client
+        .from('vaults')
+        .update({'isActive': isActive})
+        .eq('id', id)
+        .select(); // لازم .select() عشان يرجع بيانات محدثة
+
+    if (response == null || response.isEmpty) {
+      throw Exception('فشل تحديث حالة الخزنة');
+    }
+  }
+
+
+
+  Future<List<Map<String, dynamic>>> getPaymentsByVaultId(String id) async {
     final response = await _client
         .from('paymentsOut')
         .select('*')
-        .eq('vault_name', name);
+        .eq('vault_id', id)
+        .order('timestamp', ascending: false); // Sort in ascending order
+
+
 
     if (response == null) {
       throw Exception('Error fetching payments: ${response}');
@@ -66,10 +83,29 @@ print(response);
   }
 
 
+
+
+
+
   // جلب جميع الفواتير المرتبطة بالخزنة
   Future<List<Map<String, dynamic>>> getBillsForVault(String vaultId) async {
     final response = await _client
         .from('bills') // جدول الفواتير
+        .select('*')
+        .eq('vault_id', vaultId) // الفواتير المرتبطة بـ vault_id
+        .order('date', ascending: false); // ترتيب الفواتير حسب التاريخ
+
+    if (response == null) {
+      throw Exception('Failed to fetch bills for vault');
+    }
+
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  // جلب جميع الفواتير المرتبطة بالخزنة
+  Future<List<Map<String, dynamic>>> getpaymentsForVault(String vaultId) async {
+    final response = await _client
+        .from('payment') // جدول الفواتير
         .select('*')
         .eq('vault_id', vaultId) // الفواتير المرتبطة بـ vault_id
         .order('date', ascending: false); // ترتيب الفواتير حسب التاريخ
@@ -95,7 +131,7 @@ print(response);
   }
 
 
-  Future<void> transferBetweenVaults(String fromVaultId, String toVaultId, double amount) async {
+  Future<void> transferBetweenVaults(String fromVaultId, String toVaultId, int amount) async {
     try {
       final fromVault = await _client
           .from('vaults')
@@ -147,9 +183,10 @@ print(response);
       final bills = await getBillsForVault(vaultId);
 
       // Calculate total payment
-      final totalPayment = bills.fold(0.0, (sum, bill) {
-        return sum + (bill['payment'] ?? 0.0);
+      final int totalPayment = bills.fold(0, (sum, bill) {
+        return (sum + (bill['payment'] ?? 0)).toInt();
       });
+
 
       // Update the vault's balance in the database
       final response = await _client
@@ -169,31 +206,97 @@ print(response);
     }
   }
 
-  // Future<void> addPayment({
-  //   required String vaultId,
-  //   required int amount,
-  //   required String description,
-  //   required String timestamp,
-  // }) async {
-  //   final response = await _client.from('paymentsOut').insert({
-  //     'vault_id': vaultId,
-  //     'amount': amount,
-  //     'description': description,
-  //     'timestamp': timestamp,
-  //   });
-  //
-  //   if (response == null) {
-  //     throw Exception('Error adding payment: ${response}');
-  //   }
-  // }
+
   Future<List<Map<String, dynamic>>> getAllVaults() async {
-    final response = await _client.from('vaults').select('id, name, balance');
+    // final response = await _client.from('vaults').select('id,name,balance,isActive');
+    final response = await _client
+        .from('vaults')
+        .select('id,name,balance,isActive')
+        .eq('isActive', true); // ✅ شرط يجيب بس الـ Active
+    if (response == null) {
+      throw Exception('Error fetching vaults: ${response}');
+    }
+    return List<Map<String, dynamic>>.from(response ?? []);
+  }
+
+
+  Future<List<Map<String, dynamic>>> getAlpaymentsOut() async {
+    final response = await _client.from('paymentsOut').select('*');
 
     if (response == null) {
       throw Exception('Error fetching vaults: ${response}');
     }
     return List<Map<String, dynamic>>.from(response ?? []);
   }
+
+
+  // تحديث رصيد الخزنة
+
+  // Future<void> subtractFromVaultBalance2(String vaultId, double billPayment) async {
+  //   // 1. جيب الرصيد الحالي
+  //   final response = await _client
+  //       .from('vaults')
+  //       .select('balance')
+  //       .eq('id', vaultId)
+  //       .single();
+  //
+  //   if (response == null || response['balance'] == null) {
+  //     throw Exception("لم يتم العثور على الخزنة أو الرصيد غير موجود");
+  //   }
+  //
+  //   final currentBalance = (response['balance'] as num).toDouble();
+  //
+  //   // 2. احسب الرصيد الجديد
+  //   final newBalance = currentBalance - billPayment;
+  //
+  //   // 3. حدث الرصيد
+  //   await _client
+  //       .from('vaults')
+  //       .update({'balance': newBalance})
+  //       .eq('id', vaultId);
+  // }
+
+
+  Future<bool> subtractFromVaultBalance2(String vaultId, double billPayment) async {
+    try {
+      // 1. جيب الرصيد الحالي
+      final response = await _client
+          .from('vaults')
+          .select('balance')
+          .eq('id', vaultId)
+          .single();
+
+      if (response == null || response['balance'] == null) {
+        throw Exception("❌ لم يتم العثور على الخزنة أو الرصيد غير موجود");
+      }
+
+      final currentBalance = (response['balance'] as num).toDouble();
+
+      // 2. احسب الرصيد الجديد
+      final newBalance = currentBalance - billPayment;
+
+      if (newBalance < 0) {
+        throw Exception("⚠️ الرصيد لا يكفي لخصم هذا المبلغ");
+      }
+
+      // 3. حدث الرصيد
+      final updateResponse = await _client
+          .from('vaults')
+          .update({'balance': newBalance})
+          .eq('id', vaultId);
+
+      print("✅ تم تحديث الرصيد بنجاح: $newBalance - response: $updateResponse");
+      return true; // ✅ نجاح
+
+    } catch (e, stackTrace) {
+      print("🚨 خطأ أثناء خصم الرصيد: $e");
+      print(stackTrace);
+      return false; // ❌ فشل
+    }
+  }
+
+
+
 
   // Future<void> subtractFromVaultBalance({
   //   required String vaultId,
@@ -212,18 +315,18 @@ print(response);
   // }
 
   Future<void> updateVaultBalanceAndLogPayment({
-    required String vaultname,
-    required double newBalance,
-    required int amount,
-    required String description,
-    required String timestamp,
+    required String vault_id,
+    required int newBalance,
+    // required int amount,
+    // required String description,
+    // required String timestamp,
   }) async {
     // try {
       // Start a transaction by updating the balance
       final balanceUpdateResponse = await _client
           .from('vaults')
           .update({'balance': newBalance})
-          .eq('name', vaultname).asStream()
+          .eq('id', vault_id).asStream()
           ;
 
       if (balanceUpdateResponse == null) {
@@ -252,11 +355,11 @@ print(response);
   // }
 
 
-  Future<double> getVaultBalance(String name) async {
+  Future<int> getVaultBalance(String id) async {
     final response = await _client
         .from('vaults')
         .select('balance')
-        .eq('name', name)
+        .eq('id', id)
         .single()
         ;
 
@@ -264,27 +367,82 @@ print(response);
       throw Exception('Error fetching vault balance: ${response}');
     }
 
-    return response['balance'] as double;
+    return response['balance'] as int;
+  }
+
+
+  Future<String> getVaultbyid(String id) async {
+    final response = await _client
+        .from('vaults')
+        .select('name')
+        .eq('id', id)
+        .single()
+        ;
+
+    if (response == null) {
+      throw Exception('Error fetching vault balance: ${response}');
+    }
+
+    return response['name'] as String;
   }
 
 
   Future<void> subtractFromVaultBalance({
-  required String vaultname,
+  required String vault_id,
+  required String vault_name,
   required String userName,
   required int amount,
   required String description,
   required String timestamp,
 }) async {
   final response = await _client.from('paymentsOut').insert({
-    'vault_name': vaultname,
+    'vault_id': vault_id,
+    'vault_name': vault_name,
     'userName': userName,
     'amount': amount,
     'description': description,
     'timestamp': timestamp,
   });
 
-  // if (response == null) {
-  //   throw Exception('Error adding payment: ${response}');
-  // }
 }
+
+  Future<int> getTotalVaultCount() async {
+  final response = await _client.from('vaults').select('*');
+  return response.length;
+}
+  Future<int> getTotalVaultBalance() async {
+    final response = await _client
+        .from('vaults')
+        .select('balance',)
+        ;
+
+    if (response == null) {
+      throw Exception('Error fetching vault balances: ${response}');
+    }
+
+    // Sum the balances manually
+    final List<dynamic> vaults = response;
+    int totalBalance = vaults.fold(0, (sum, vault) => sum + ((vault['balance'] as num?)?.toInt() ?? 0));
+
+    return totalBalance  ;
+  }
+
+  Future<int> getTotalpaymentsOut() async {
+    final response = await _client
+        .from('paymentsOut')
+        .select('amount',)
+    ;
+
+    if (response == null) {
+      throw Exception('Error fetching vault balances: ${response}');
+    }
+
+    // Sum the balances manually
+    final List<dynamic> vaults = response;
+    int TotalpaymentsOut = vaults.fold(0, (sum, vault) => sum + (vault['amount'] ?? 0) as int);
+
+    return TotalpaymentsOut;
+  }
+
+
 }

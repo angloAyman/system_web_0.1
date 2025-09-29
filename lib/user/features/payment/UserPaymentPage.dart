@@ -118,6 +118,20 @@ class _UserPaymentPageState extends State<UserPaymentPage> {
     );
   }
 
+  Future<Bill> _fetchBill(int billId) async {
+    final response = await Supabase.instance.client
+        .from('bills')
+        .select()
+        .eq('id', billId)
+        .limit(1)
+        .single(); // ✅ استخدم .single() لجلب عنصر واحد فقط
+
+    if (response == null) {
+      throw Exception('لم يتم العثور على الفاتورة.');
+    }
+
+    return Bill.fromJson(response); // تأكد من أن لديك `fromJson` في `Bill`
+  }
 
 
   Future<List<Map<String, dynamic>>> _fetchPayments(int billId) async {
@@ -168,7 +182,9 @@ class _UserPaymentPageState extends State<UserPaymentPage> {
                       icon: Icon(Icons.picture_as_pdf),
                       label: Text('استخراج PDF'),
                       onPressed: () async {
-                        await createPDF(payment, customerName, billDate, total_price,totalPayments,remainingAmount);
+                        final bill = await _fetchBill(billId);
+
+                        await createPDF(context,bill,payment, customerName, billDate, total_price,totalPayments,remainingAmount);
                       },
                     ),
                   );
@@ -263,12 +279,12 @@ class _UserPaymentPageState extends State<UserPaymentPage> {
                         children: [
                           ElevatedButton(
                             onPressed: () =>
-                                _showAddPaymentDialog(bill.id as int, bill.customerName,bill.date as DateTime,bill.total_price as double),
+                                _showAddPaymentDialog(bill.id , bill.customerName,bill.date as DateTime,bill.total_price ),
                             child: const Text('اضافة الدفع'),
                           ),
                           SizedBox(width: 10,),
                           ElevatedButton(
-                            onPressed: () => _showPaymentDetailsDialog(bill.id as int,bill.customerName,bill.date as DateTime,bill.total_price as double),
+                            onPressed: () => _showPaymentDetailsDialog(bill.id ,bill.customerName,bill.date as DateTime,bill.total_price),
                             child: const Text('تفاصيل المدفوعات'), ),
                         ],
                       ),

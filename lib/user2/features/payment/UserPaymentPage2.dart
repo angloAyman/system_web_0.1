@@ -5,14 +5,14 @@ import 'package:system/features/billes/data/repositories/bill_repository.dart';
 import 'package:system/features/payment/AddPaymentPage.dart';
 import 'package:system/features/payment/pdf.dart';
 
-class UserPaymentPage extends StatefulWidget {
-  const UserPaymentPage({Key? key}) : super(key: key);
+class UserPaymentPage2 extends StatefulWidget {
+  const UserPaymentPage2({Key? key}) : super(key: key);
 
   @override
-  _UserPaymentPageState createState() => _UserPaymentPageState();
+  _UserPaymentPage2State createState() => _UserPaymentPage2State();
 }
 
-class _UserPaymentPageState extends State<UserPaymentPage> {
+class _UserPaymentPage2State extends State<UserPaymentPage2> {
   final BillRepository _billRepository = BillRepository();
   late Future<List<Bill>> _allBillsFuture;
   final TextEditingController _searchController = TextEditingController();
@@ -42,7 +42,7 @@ class _UserPaymentPageState extends State<UserPaymentPage> {
 
   Future<List<Bill>> _loadAllBills() async {
     try {
-      final bills = await _billRepository.getBills();
+      final bills = await _billRepository.getNormalCustomerBills();
       setState(() {
         _allBills = bills;
         _filteredBills = bills; // Default view shows all bills
@@ -118,6 +118,20 @@ class _UserPaymentPageState extends State<UserPaymentPage> {
     );
   }
 
+  Future<Bill> _fetchBill(int billId) async {
+    final response = await Supabase.instance.client
+        .from('bills')
+        .select()
+        .eq('id', billId)
+        .limit(1)
+        .single(); // ✅ استخدم .single() لجلب عنصر واحد فقط
+
+    if (response == null) {
+      throw Exception('لم يتم العثور على الفاتورة.');
+    }
+
+    return Bill.fromJson(response); // تأكد من أن لديك `fromJson` في `Bill`
+  }
 
 
   Future<List<Map<String, dynamic>>> _fetchPayments(int billId) async {
@@ -168,7 +182,9 @@ class _UserPaymentPageState extends State<UserPaymentPage> {
                       icon: Icon(Icons.picture_as_pdf),
                       label: Text('استخراج PDF'),
                       onPressed: () async {
-                        await createPDF(payment, customerName, billDate, total_price,totalPayments,remainingAmount);
+                        final bill = await _fetchBill(billId);
+
+                        await createPDF(context,bill,payment, customerName, billDate, total_price,totalPayments,remainingAmount);
                       },
                     ),
                   );
@@ -201,7 +217,7 @@ class _UserPaymentPageState extends State<UserPaymentPage> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.pushReplacementNamed(context, '/userMainScreen');
+              Navigator.pushReplacementNamed(context, '/userMainScreen2');
             },
             icon: const Icon(Icons.home),
           ),
@@ -263,12 +279,12 @@ class _UserPaymentPageState extends State<UserPaymentPage> {
                         children: [
                           ElevatedButton(
                             onPressed: () =>
-                                _showAddPaymentDialog(bill.id as int, bill.customerName,bill.date as DateTime,bill.total_price as double),
+                                _showAddPaymentDialog(bill.id , bill.customerName,bill.date as DateTime,bill.total_price ),
                             child: const Text('اضافة الدفع'),
                           ),
                           SizedBox(width: 10,),
                           ElevatedButton(
-                            onPressed: () => _showPaymentDetailsDialog(bill.id as int,bill.customerName,bill.date as DateTime,bill.total_price as double),
+                            onPressed: () => _showPaymentDetailsDialog(bill.id ,bill.customerName,bill.date as DateTime,bill.total_price ),
                             child: const Text('تفاصيل المدفوعات'), ),
                         ],
                       ),

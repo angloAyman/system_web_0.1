@@ -2,22 +2,22 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:system/features/Vaults/data/repositories/supabase_vault_repository.dart';
 import 'package:system/features/Vaults/pdf/generatePaymentDetailsPdf.dart';
+import 'package:system/features/Vaults/pdf/generateallPaymentDetailsPdf.dart';
 
-class PaymentDetailsDialog extends StatelessWidget {
-  final String vaultName;
+class AllPaymentDetailsDialog extends StatelessWidget {
 
-  PaymentDetailsDialog({Key? key, required this.vaultName}) : super(key: key);
+  AllPaymentDetailsDialog({Key? key, }) : super(key: key);
 
   final SupabaseVaultRepository _vaultRepository = SupabaseVaultRepository();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('تفاصيل المدفعات بالخزنة (${vaultName})'),
+      title: Text('تفاصيل جميع المدفعات '),
 
     // title: const Text('تفاصيل المدفعات'),
       content: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _vaultRepository.getPaymentsByVaultId(vaultName),
+        future: _vaultRepository.getAlpaymentsOut(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const CircularProgressIndicator();
@@ -40,6 +40,7 @@ class PaymentDetailsDialog extends StatelessWidget {
                   DataColumn(label: Text('اسم المستخدم', style: TextStyle(fontWeight: FontWeight.bold))),
                   DataColumn(label: Text('المبلغ', style: TextStyle(fontWeight: FontWeight.bold))),
                   DataColumn(label: Text('الوصف', style: TextStyle(fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text('الخزينة', style: TextStyle(fontWeight: FontWeight.bold))),
                 ],
                 rows: payments.map((payment) {
                   String formattedDate = '';
@@ -57,6 +58,7 @@ class PaymentDetailsDialog extends StatelessWidget {
                     DataCell(Text('${payment['userName']}')),
                     DataCell(Text('${payment['amount']}')),
                     DataCell(Text(payment['description'] ?? 'لا يوجد وصف')),
+                    DataCell(Text(payment['vault_name'] ?? 'لا يوجد وصف')),
                   ]);
                 }).toList(),
               ),
@@ -65,14 +67,11 @@ class PaymentDetailsDialog extends StatelessWidget {
         },
       ),
       actions: [
-        // TextButton(
-        //   onPressed: () => Navigator.of(context).pop(),
-        //   child: const Text('إغلاق'),
-        // ),
+        //
         ElevatedButton(
           onPressed: () async {
-            final payments = await _vaultRepository.getPaymentsByVaultId(vaultName);
-            await generatePaymentDetailsPdf(payments, vaultName);
+            final payments = await _vaultRepository.getAlpaymentsOut();
+            await generateallPaymentDetailsPdf(payments);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('تم إنشاء ملف PDF بنجاح!')),
             );

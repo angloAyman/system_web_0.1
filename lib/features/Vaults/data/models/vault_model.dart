@@ -1,12 +1,14 @@
 class Vault {
   final String id; // تعديل النوع إلى String
   final String name;
-  final double balance;
+  final int balance;
+   bool isActive;
 
   Vault({
     required this.id,
     required this.name,
     required this.balance,
+    required this.isActive,
   });
 
   // من JSON إلى كائن Vault
@@ -14,7 +16,8 @@ class Vault {
     return Vault(
       id: data['id']as String,
       name: data['name'] as String,
-      balance: (data['balance'] as num).toDouble(),
+      balance: (data['balance'] as num).toInt(),
+      isActive: data['isActive'] as bool,
     );
   }
 
@@ -24,6 +27,7 @@ class Vault {
       'id': id,
       'name': name,
       'balance': balance,
+      'isActive': isActive,
     };
   }
 }

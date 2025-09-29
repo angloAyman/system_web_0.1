@@ -12,9 +12,9 @@ import 'package:system/features/customer/data/repository/business_customer_repos
 import 'package:system/features/customer/data/repository/normal_customer_repository.dart';
 import 'package:system/features/report/data/model/report_model.dart';
 
-Future<void> showAddBillDialog({
+Future<void> showAddBillDialog2({
   required BuildContext context,
-  required Function(Bill, Payment, Report) onAddBill,
+  required Function(Bill, Payment, Report, Report) onAddBill,
 }) async {
   final BusinessCustomerRepository _businesscustomerRepository = BusinessCustomerRepository();
   final NormalCustomerRepository _normalcustomerRepository = NormalCustomerRepository();
@@ -46,12 +46,12 @@ Future<void> showAddBillDialog({
     normalCustomerNames = normal_customer_names;
   });
 
-  // Fetch businesscustomer names
-  await billRepository
-      .getBusinessCustomerNames()
-      .then((business_customer_names) {
-    businesscustomernames = business_customer_names;
-  });
+  // // Fetch businesscustomer names
+  // await billRepository
+  //     .getBusinessCustomerNames()
+  //     .then((business_customer_names) {
+  //   businesscustomernames = business_customer_names;
+  // });
 
   // Fetch vaults names
   await billRepository.fetchVaultList().then((fetchedVaults) {
@@ -59,19 +59,21 @@ Future<void> showAddBillDialog({
   });
 
   double calculateTotalPrice({
-    required double amount,
-    required double pricePerUnit,
-    required double quantity,
-    required double discount,
+    // required double amount,
+    // required double pricePerUnit,
+    // required double quantity,
+    // required double discount,
+    required double total_Item_price,
   }) {
-    // Calculate the subtotal
-    double subtotal = amount * pricePerUnit * quantity;
-
-    // Calculate the discount amount
-    double discountAmount = subtotal * (discount / 100);
-
-    // Calculate the total price after applying the discount
-    double totalPrice = subtotal - discountAmount;
+    // // Calculate the subtotal
+    // double subtotal = amount * pricePerUnit * quantity;
+    //
+    // // Calculate the discount amount
+    // double discountAmount = subtotal * (discount / 100);
+    //
+    // // Calculate the total price after applying the discount
+    // double totalPrice = subtotal - discountAmount;
+    double totalPrice = total_Item_price;
 
     return totalPrice;
   }
@@ -85,10 +87,11 @@ Future<void> showAddBillDialog({
     _totalPrice = items.fold(0.0, (sum, item) {
       return sum +
           calculateTotalPrice(
-            amount: item.amount,
-            pricePerUnit: item.price_per_unit,
-            quantity: item.quantity,
-            discount: item.discount,
+            // amount: item.amount,
+            // pricePerUnit: item.price_per_unit,
+            // quantity: item.quantity,
+            // discount: item.discount,
+            total_Item_price: item.total_Item_price,
           );
     });
   }
@@ -126,33 +129,33 @@ Future<void> showAddBillDialog({
       customerExists = normalCustomerNames.contains(customerName);
     }
     ;
-    if (_selectedCustomerType == "عميل تجاري") {
-      customerExists = businesscustomernames.contains(customerName);
-    }
+    // if (_selectedCustomerType == "عميل تجاري") {
+    //   customerExists = businesscustomernames.contains(customerName);
+    // }
     ;
   }
 
 
 
-  void _addCustomer(String name, String personName, String email, String phone,
-      String personPhone, String address, String personphonecall) async {
-    final newCustomer = business_customers(
-      id: '',
-      name: name,
-      personName: personName,
-      email: email.isNotEmpty ? email : "لم يتم الادخال",
-      phone: phone.isNotEmpty ? phone : "لم يتم الادخال",
-      personPhone: personPhone.isNotEmpty ? personPhone : "لم يتم الادخال",
-      address: address.isNotEmpty ? address : "لم يتم الادخال",
-      personphonecall:personphonecall.isNotEmpty ? personphonecall : "لم يتم الادخال",
-    );
-
-    await _businesscustomerRepository.addCustomer(newCustomer);
-    await billRepository.getBusinessCustomerNames().then((business_customer_names) {
-      businesscustomernames = business_customer_names;
-    });
-    // _refreshCustomers(); // Refresh the customer list after adding a new customer
-  }
+  // void _addCustomer(String name, String personName, String email, String phone,
+  //     String personPhone, String address, String personphonecall) async {
+  //   final newCustomer = business_customers(
+  //     id: '',
+  //     name: name,
+  //     personName: personName,
+  //     email: email.isNotEmpty ? email : "لم يتم الادخال",
+  //     phone: phone.isNotEmpty ? phone : "لم يتم الادخال",
+  //     personPhone: personPhone.isNotEmpty ? personPhone : "لم يتم الادخال",
+  //     address: address.isNotEmpty ? address : "لم يتم الادخال",
+  //     personphonecall:personphonecall.isNotEmpty ? personphonecall : "لم يتم الادخال",
+  //   );
+  //
+  //   await _businesscustomerRepository.addCustomer(newCustomer);
+  //   await billRepository.getBusinessCustomerNames().then((business_customer_names) {
+  //     businesscustomernames = business_customer_names;
+  //   });
+  //   // _refreshCustomers(); // Refresh the customer list after adding a new customer
+  // }
 
 
   void _addNormalCustomer(String name, String email, String phone, String address,
@@ -200,7 +203,7 @@ Future<void> showAddBillDialog({
                 ToggleButtons(
                   isSelected: [
                     _selectedCustomerType == "عميل عادي",
-                    _selectedCustomerType == "عميل تجاري",
+                    // _selectedCustomerType == "عميل تجاري",
                   ],
                   onPressed: (index) {
                     setDialogState(() {
@@ -221,10 +224,10 @@ Future<void> showAddBillDialog({
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Text("عميل عادي"),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text("عميل تجاري"),
-                    ),
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 12),
+                    //   child: Text("عميل تجاري"),
+                    // ),
                   ],
                 ),
                 SizedBox(height: 16), // Spacing below the toggle buttons
@@ -248,16 +251,16 @@ Future<void> showAddBillDialog({
                       setDialogState: setDialogState,
                     ),
 
-                  if (_selectedCustomerType == "عميل تجاري")
-                    BusinessCustomerForm(
-                      customerNameController: customerNameController,
-                      dateController: dateController,
-                      customerExists: customerExists,
-                      businessCustomerNames: businesscustomernames,
-                      updateCustomerExistence: _updateCustomerExistence,
-                      addBusinessCustomer: _addCustomer,
-                      setDialogState: setDialogState,
-                    ),
+                  // if (_selectedCustomerType == "عميل تجاري")
+                  //   BusinessCustomerForm(
+                  //     customerNameController: customerNameController,
+                  //     dateController: dateController,
+                  //     customerExists: customerExists,
+                  //     businessCustomerNames: businesscustomernames,
+                  //     updateCustomerExistence: _updateCustomerExistence,
+                  //     addBusinessCustomer: _addCustomer,
+                  //     setDialogState: setDialogState,
+                  //   ),
 
                   SizedBox(height: 20),
                   ElevatedButton(
@@ -406,10 +409,11 @@ Future<void> showAddBillDialog({
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
                                   calculateTotalPrice(
-                                    amount: item.amount,
-                                    pricePerUnit: item.price_per_unit,
-                                    quantity: item.quantity,
-                                    discount: item.discount,
+                                    // amount: item.amount,
+                                    // pricePerUnit: item.price_per_unit,
+                                    // quantity: item.quantity,
+                                    // discount: item.discount,
+                                    total_Item_price: item.total_Item_price,
                                   ).toString(),
                                   style: TextStyle(fontSize: 16.0),
                                 ),
@@ -470,10 +474,11 @@ Future<void> showAddBillDialog({
                     'الإجمالي: L.E ${items.fold(0.0, (sum, item) {
                       return sum +
                           calculateTotalPrice(
-                            amount: item.amount,
-                            pricePerUnit: item.price_per_unit,
-                            quantity: item.quantity,
-                            discount: item.discount,
+                            // amount: item.amount,
+                            // pricePerUnit: item.price_per_unit,
+                            // quantity: item.quantity,
+                            // discount: item.discount,
+                            total_Item_price: item.total_Item_price,
                           );
                     })}',
                     style: TextStyle(fontWeight: FontWeight.bold),
@@ -612,7 +617,9 @@ Future<void> showAddBillDialog({
                                 payment: double.parse(paymentController.text),
                                 total_price: _totalPrice,
                                 vault_id: selectedVaultId!,
-                                customer_type: _selectedCustomerType ,
+                                customer_type: _selectedCustomerType,
+                                isFavorite: false,
+                                description: 'جاري التنفيذ' ,
                               );
 
                               final payment = Payment(
@@ -626,18 +633,36 @@ Future<void> showAddBillDialog({
                                 createdAt: DateTime.now(),
                               );
 
+                              final currentUser = Supabase.instance.client.auth.currentUser!;
+                              final userData = await Supabase.instance.client
+                                  .from('users')
+                                  .select('name')
+                                  .eq('id', currentUser.id)
+                                  .maybeSingle();
+
                               final billreport = Report(
-                                id: Supabase
-                                    .instance.client.auth.currentUser!.id,
+                                id: currentUser.id,
                                 title: "اضافة فاتورة",
-                                user_name: user.id,
+                                // user_id: currentUser.id,
+                                user_name: userData?['name'] ?? "مجهول", // 👈 من جدول users
                                 date: DateTime.now(),
                                 description:
                                     'رقم الفاتورة: (${bill.id.toString()}) - اسم العميل : ${bill.customerName} - اجمالي الفاتورة: ${bill.total_price.toStringAsFixed(2)}',
                                 operationNumber: 0,
                               );
 
-                              await onAddBill(bill, payment, billreport);
+                              final preport = Report(
+                                id: currentUser.id,
+                                title: "ايداع",
+                                // user_id: currentUser.id,
+                                user_name: userData?['name'] ?? "مجهول", // 👈 من جدول users
+                                date: DateTime.now(),
+                                description:
+                                    'رقم الفاتورة: (${bill.id.toString()}) - المبلغ المدفوع: $payment - اجمالي الفاتورة: ${bill.total_price.toStringAsFixed(2)}',
+                                operationNumber: 0,
+                              );
+
+                              await onAddBill(bill, payment, billreport, preport);
                               final repository = BillRepository();
                               Navigator.of(context).pop();
                             } else {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:system/core/themes/AppColors/them_constants.dart';
 import 'package:system/features/Vaults/Presentation/dialog/PaymentDialog.dart';
 import 'package:system/features/billes/FavoriteBillsPage.dart';
@@ -6,6 +7,7 @@ import 'package:system/features/billes/data/models/bill_model.dart';
 import 'package:system/features/billes/data/repositories/bill_repository.dart';
 import 'package:system/features/billes/presentation/Dialog/adding/bill/showAddBillDialog.dart';
 import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/bill/showBillDetailsDialog.dart';
+import 'package:system/features/downloadAPK/ApkDownloadScreen.dart';
 
 class Mainscreen extends StatefulWidget {
   const Mainscreen({super.key});
@@ -24,12 +26,14 @@ class _MainscreenState extends State<Mainscreen> {
     super.initState();
     _favoriteBillsFuture = _billRepository.getFavoriteBills(); // Fetch favorite bills
     _NotfavoriteBillsFuture = _billRepository.getNotFavoriteBills(); // Fetch not favorite bills
+
   }
 
+
   // Function to add a bill
-  void addBill(Bill bill, payment, report) async {
+  void addBill(Bill bill, payment, report, preport) async {
     try {
-      await _billRepository.addBill(bill, payment, report);
+      await _billRepository.addBill(bill, payment, report, report);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تم إضافة الفاتورة بنجاح')),
       );
@@ -79,6 +83,8 @@ class _MainscreenState extends State<Mainscreen> {
     );
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,15 +100,6 @@ class _MainscreenState extends State<Mainscreen> {
                      spacing: 20,
                      runSpacing: 20,
                      children: [
-                       // _buildButton(
-                       //   text: "الفواتير المفضلة",
-                       //   icon: Icons.account_balance,
-                       //   onPressed: (){
-                       //     MaterialPageRoute(
-                       //       builder: (context) => FavoriteBillsPage(), // Pass the list of bills
-                       //     );
-                       //   },
-                       // ),
                        _buildButton(
                          text: "إضافة فاتورة",
                          icon: Icons.file_copy_outlined,
@@ -137,7 +134,7 @@ class _MainscreenState extends State<Mainscreen> {
                          },
                        ),
                        _buildButton(
-                         text: "المصروفات",
+                         text: "إضافة المصروفات",
                          icon: Icons.payment,
                          onPressed: () {
                            showDialog(context: context,
@@ -153,6 +150,20 @@ class _MainscreenState extends State<Mainscreen> {
                            _showReportSelectionDialog(context);
                          },
                        ),
+                       // _buildButton(
+                       //   text: "تحميل برنامج الموبيل",
+                       //   icon: Icons.android,
+                       //   onPressed: () {
+                       //     Navigator.push(
+                       //       context,
+                       //       MaterialPageRoute(
+                       //         builder: (_) => ApkDownloadScreen(apkUrl: apkUrl),
+                       //       ),
+                       //     );
+                       //   },
+                       // ),
+
+
                      ],
                    ),
                  ),
@@ -242,28 +253,55 @@ class _MainscreenState extends State<Mainscreen> {
                                 ),
 
 
-                                // IconButton(
-                                //   icon: const Icon(Icons.edit),
-                                //   color: Colors.orange,
-                                //   onPressed: () async {
-                                //     try {
-                                //       // Remove from favorites
-                                //       await _billRepository.removeFromFavorites(bill);
-                                //       ScaffoldMessenger.of(context).showSnackBar(
-                                //         SnackBar(content: Text('تمت إزالة الفاتورة من المفضلة')),
-                                //       );
-                                //
-                                //       setState(() {
-                                //         // Refresh the list after removal
-                                //         _favoriteBillsFuture = _billRepository.getFavoriteBills();
-                                //       });
-                                //     } catch (e) {
-                                //       ScaffoldMessenger.of(context).showSnackBar(
-                                //         SnackBar(content: Text('خطأ: ${e.toString()}')),
-                                //       );
-                                //     }
-                                //   },
-                                // ),
+                                IconButton(
+                                  icon: const Icon(Icons.edit),
+                                  color: Colors.orange,
+                                  onPressed: () async {
+                                    TextEditingController descriptionController = TextEditingController(text: bill.description ?? '');
+
+                                    String? newDescription = await showDialog<String>(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: Text('تعديل وصف الفاتورة'),
+                                          content: TextField(
+                                            controller: descriptionController,
+                                            decoration: InputDecoration(hintText: 'أدخل الوصف الجديد'),
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.of(context).pop(null), // إلغاء
+                                              child: Text('إلغاء'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () => Navigator.of(context).pop(descriptionController.text), // تأكيد
+                                              child: Text('حفظ'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+
+                                    if (newDescription != null && newDescription.isNotEmpty) {
+                                      try {
+                                        // تحديث الوصف في Supabase
+                                        await _billRepository.updatedescriptionbybillid(bill, newDescription);
+
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('تم تحديث وصف الفاتورة بنجاح!')),
+                                        );
+
+                                        setState(() {
+                                          _favoriteBillsFuture = _billRepository.getFavoriteBills(); // تحديث القائمة
+                                        });
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('خطأ أثناء التحديث: ${e.toString()}')),
+                                        );
+                                      }
+                                    }
+                                  },
+                                ),
 
                                 // IconButton(
                                 //   icon: const Icon(Icons.delete),

@@ -1,7 +1,7 @@
 // // DataSource for SfDataGrid
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
+import 'package:system/features/billes/data/models/bill_model.dart';
 
 class BillDataSource extends DataGridSource {
   late List<Bill> bills;
@@ -42,7 +42,6 @@ class BillDataSource extends DataGridSource {
       final cells = [
         if (showBillId) DataGridCell<int>(columnName: 'billId', value: bill.id),
         if (showCustomerName) DataGridCell<String>(columnName: 'customerName', value: bill.customerName),
-        // if (showDate) DataGridCell<String>(columnName: 'date', value: DateFormat('yyyy-MM-dd').format(bill.date)),
         if (showDate) DataGridCell<DateTime>(columnName: 'date', value: bill.date),
         if (showStatus) DataGridCell<String>(columnName: 'status', value: bill.status),
         if (showTotalPrice) DataGridCell<double>(columnName: 'totalPrice', value: bill.total_price),

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // For date formatting
-import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
-import 'package:system/Adminfeatures/category/data/models/category_model.dart';
-import 'package:system/Adminfeatures/category/data/models/subCategory_model.dart';
-import 'package:system/Adminfeatures/category/data/repositories/category_repository.dart';
-import 'package:system/Adminfeatures/report/UI/ReportCategoryOperationsPage.dart';
+import 'package:system/core/themes/AppColors/them_constants.dart';
+import 'package:system/features/billes/data/models/bill_model.dart';
+import 'package:system/features/category/data/models/category_model.dart';
+import 'package:system/features/category/data/models/subCategory_model.dart';
+import 'package:system/features/category/data/repositories/category_repository.dart';
+import 'package:system/features/report/UI/reportcategory/ReportCategoryOperationsPage.dart';
 
 class ItemsReportDashboard extends StatefulWidget {
   @override
@@ -144,7 +145,7 @@ class _ItemsReportDashboardState extends State<ItemsReportDashboard> {
     return Scaffold(
       appBar: AppBar(
         title: Text(' التقارير بالمنتجات و الفواتير'),
-        backgroundColor: Colors.blueAccent,
+        // backgroundColor: Colors.blueAccent,
         actions: [
           TextButton.icon(
             onPressed: () {
@@ -204,55 +205,6 @@ class _ItemsReportDashboardState extends State<ItemsReportDashboard> {
           ),
         ),
       ),
-
-      // body: Center(
-      //
-      //   child: Column(
-      //     children: [
-      //       Row(
-      //         children: [
-      //           // Container 1: Total Bills and Statuses
-      //           _buildBillStatusContainer(),
-      //         ],
-      //       ),
-      //      Row(children: [
-      //        // Container 2: List of categories
-      //        _buildCategoriesList(),
-      //        // Container 3: Subcategories of the selected category
-      //        if (selectedCategoryName != null) _buildSubcategoryList(),
-      //
-      //
-      //      ],),
-      //
-      //       // DataTable for Bills (Container 4)
-      //       Expanded(
-      //         child: isLoadingBills
-      //             ? Center(child: CircularProgressIndicator())
-      //             : SingleChildScrollView(
-      //           scrollDirection: Axis.horizontal,
-      //           child: DataTable(
-      //             columns: [
-      //               DataColumn(label: Text('Bill ID')),
-      //               DataColumn(label: Text('Customer Name')),
-      //               DataColumn(label: Text('Date')),
-      //               DataColumn(label: Text('Total Price')),
-      //               DataColumn(label: Text('Payment Status')),
-      //             ],
-      //             rows: bills.map((bill) {
-      //               return DataRow(cells: [
-      //                 DataCell(Text(bill.id.toString())),
-      //                 DataCell(Text(bill.customerName)),
-      //                 DataCell(Text(formatDate(bill.date))),
-      //                 DataCell(Text(bill.total_price.toString())),
-      //                 DataCell(Text(bill.payment.toString())),
-      //               ]);
-      //             }).toList(),
-      //           ),
-      //         ),
-      //       ),
-      //     ],
-      //   ),
-      // ),
     );
   }
 
@@ -263,7 +215,7 @@ class _ItemsReportDashboardState extends State<ItemsReportDashboard> {
         margin: EdgeInsets.all(10),
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.blueAccent,
+          color: AppBarTheme.of(context).surfaceTintColor,
           borderRadius: BorderRadius.circular(8),
           boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
         ),
@@ -285,7 +237,7 @@ class _ItemsReportDashboardState extends State<ItemsReportDashboard> {
       onTap: () => _fetchBillsByStatus(status),
       child: Text(
         text,
-        style: TextStyle(fontSize: 16, color: Colors.white),
+        style: TextStyle(fontSize: 16,  color: AppBarTheme.of(context).titleTextStyle?.color),
       ),
     );
   }
@@ -298,9 +250,9 @@ class _ItemsReportDashboardState extends State<ItemsReportDashboard> {
         margin: EdgeInsets.all(10),
         padding: EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppBarTheme.of(context).backgroundColor,
           borderRadius: BorderRadius.circular(8),
-          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
+          boxShadow: [BoxShadow(color: Colors.black87, blurRadius: 4)],
         ),
         child: FutureBuilder<List<Category>>(
           future: categories,
@@ -357,7 +309,7 @@ class _ItemsReportDashboardState extends State<ItemsReportDashboard> {
       width: 600,
       height: 500,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppBarTheme.of(context).surfaceTintColor,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
       ),

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:system/features/category/data/models/subCategory_model.dart';
 import '../../data/repositories/category_repository.dart';
@@ -8,22 +7,131 @@ class CategoryPage extends StatefulWidget {
   @override
   _CategoryPageState createState() => _CategoryPageState();
 }
-
 class _CategoryPageState extends State<CategoryPage> {
   final CategoryRepository _categoryRepository = CategoryRepository();
   late Future<List<Category>> _categoriesFuture;
   Map<String, Future<List<Subcategory>>> _subcategoriesFutures = {};
-
   @override
   void initState() {
     super.initState();
-    _categoriesFuture = _categoryRepository.getCategories();
+    _loadCategories();
+
   }
+
+  void _loadCategories() {
+    setState(() {
+      _categoriesFuture = _categoryRepository.getCategories();
+    });
+  }
+
+
 
   @override
   void dispose() {
     _subcategoriesFutures.clear(); // Clear futures when disposing the widget
     super.dispose();
+  }
+
+  Future<void> _showEditCategoryDialog(Category category) async {
+    TextEditingController nameController = TextEditingController(text: category.name);
+
+    bool updated = await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('تحديث الصنف الرئسي'),
+          content: TextField(
+            controller: nameController,
+            decoration: InputDecoration(labelText: 'اسم الصنف'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('الغاء'),
+            ),
+
+
+            ElevatedButton(
+              onPressed: () async {
+                String newName = nameController.text.trim();
+                if (newName.isNotEmpty && newName != category.name) {
+                  await _categoryRepository.updateCategory(category.id, newName);
+                  Navigator.of(context).pop(true);
+                } else {
+                  Navigator.of(context).pop(false);
+                }
+              },
+              child: Text('تحديث'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (updated == true) {
+      _loadCategories();
+    }
+  }
+
+  Future<void> _showEditSubcategoryDialog(String categoryId, Subcategory subcategory) async {
+    TextEditingController nameController = TextEditingController(text: subcategory.name);
+    TextEditingController unitController = TextEditingController(text: subcategory.unit);
+    TextEditingController priceController = TextEditingController(text: subcategory.pricePerUnit.toString());
+    TextEditingController discountController = TextEditingController(text: subcategory.discountPercentage.toString());
+
+    bool updated = await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('تحديث الصنف الفرعي'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: nameController, decoration: InputDecoration(labelText: 'الاسم')),
+              TextField(controller: unitController, decoration: InputDecoration(labelText: 'الوحدة')),
+              TextField(controller: priceController, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'سعر الوحدة')),
+              TextField(controller: discountController, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'نسبة الخصم')),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('الغاء'),
+            ),
+
+            ElevatedButton(
+              onPressed: () async {
+                String newName = nameController.text.trim();
+                String newUnit = unitController.text.trim();
+                double newPrice = double.tryParse(priceController.text) ?? 0.0;
+                double newDiscount = double.tryParse(discountController.text) ?? 0.0;
+
+                if (newName.isNotEmpty && newPrice > 0) {
+                  await _categoryRepository.updateSubcategory(
+                    categoryId,
+                    subcategory.id,
+                    newName,
+                    newUnit,
+                    newPrice,
+                    newDiscount,
+                  );
+                  Navigator.of(context).pop(true);
+                } else {
+                  Navigator.of(context).pop(false);
+                }
+              },
+              child: Text('تحديث'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (updated == true) {
+      setState(() {
+        _subcategoriesFutures[categoryId] = _categoryRepository.getSubcategories(categoryId);
+      });
+    }
   }
 
   void _removeCategory(String categoryId) async {
@@ -49,17 +157,14 @@ class _CategoryPageState extends State<CategoryPage> {
       String name,
       String unit,
       double pricePerUnit,
-      double discountPercentage,
-      ) async {
-    try {
+      String discountPercentage,
+      ) async
+  {try {
       await _categoryRepository.addSubcategory(categoryId, name, unit, pricePerUnit, discountPercentage);
-      if (mounted) {
-        setState(() {
+      if (mounted) { setState(() {
           _subcategoriesFutures[categoryId] =
               _categoryRepository.getSubcategories(categoryId);
-        });
-      }
-    } catch (e) {
+        });}} catch (e) {
       print('Error adding subcategory: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -137,7 +242,8 @@ class _CategoryPageState extends State<CategoryPage> {
                 final price = double.tryParse(priceText);
 
                 final discountPercentageText = _discountPercentageSubcategoryController.text;
-                final discountPercentage = double.tryParse(discountPercentageText);
+                final discountPercentage = discountPercentageText.toString();
+                // final discountPercentage = double.tryParse(discountPercentageText);
 
                 if (price == null || price <= 0) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -145,7 +251,7 @@ class _CategoryPageState extends State<CategoryPage> {
                   );
                   return;
                 }
-                if (discountPercentage == null || discountPercentage <= 0) {
+                if (discountPercentage == null ) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('الرجاء إدخال الخصم بطريقة صحيحة.')),
                   );
@@ -179,7 +285,7 @@ class _CategoryPageState extends State<CategoryPage> {
           title: Text('اضافة صنف'),
           content: TextField(
             controller: _categoryController,
-            decoration: InputDecoration(labelText: 'اسم الصنوف'),
+            decoration: InputDecoration(labelText: 'اسم الصنف'),
           ),
           actions: [
             TextButton(
@@ -230,7 +336,7 @@ class _CategoryPageState extends State<CategoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('الصنف'),
+        title: Text('الاصناف'),
         actions: [
 
           TextButton.icon(onPressed: (){
@@ -265,7 +371,10 @@ class _CategoryPageState extends State<CategoryPage> {
                   FutureBuilder<List<Subcategory>>(
                     future: _subcategoriesFutures.putIfAbsent(
                       category.id,
-                          () => _categoryRepository.getSubcategories(category.id),
+                      () {
+                        return _categoryRepository
+                            .getSubcategories(category.id);
+                      },
                     ),
                     builder: (context, subcatSnapshot) {
                       if (subcatSnapshot.connectionState ==
@@ -277,7 +386,7 @@ class _CategoryPageState extends State<CategoryPage> {
                         );
                       } else if (!subcatSnapshot.hasData ||
                           subcatSnapshot.data!.isEmpty) {
-                        return Center(child: Text('No subcategories found.'));
+                        return Center(child: Text(" لا يوجد اصناف فرعية"));
                       }
 
                       final subcategories = subcatSnapshot.data!;
@@ -287,27 +396,57 @@ class _CategoryPageState extends State<CategoryPage> {
                             title: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(subcat.name),
-                                Text(subcat.unit),
-                                Text(subcat.pricePerUnit.toString()),
-                                Text(subcat.discountPercentage.toString()),
+                                Text("اسم الصنف الفرعي : " + subcat.name),
+                                Text("الوحدة : " + subcat.unit),
+                                Text("سعر الوحدة : " +
+                                    subcat.pricePerUnit.toString()),
+                                Text("نسبة الخصم : " +
+                                    subcat.discountPercentage.toString()),
                               ],
                             ),
-                            trailing: IconButton(
-                              onPressed: () =>
-                                  _removeSubcategory(category.id, subcat.id),
-                              icon: Icon(Icons.delete),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  onPressed: () {
+                                    _showEditSubcategoryDialog(
+                                        category.id, subcat);
+                                    setState(() {
+
+                                    });
+                                  },
+                                  tooltip: "تحديث الصنف الفرعي",
+                                  icon: Icon(Icons.edit, color: Colors.blue),
+                                ),
+                                IconButton(
+                                  onPressed: () => _removeSubcategory(
+                                      category.id, subcat.id),
+                                  icon: Icon(Icons.delete, color: Colors.red),
+                                ),
+                              ],
                             ),
                           );
                         }).toList(),
                       );
                     },
                   ),
+
                   ButtonBar(
                     children: [
                       IconButton(
                         icon: Icon(Icons.add),
+                        tooltip: "اضافة عنصر فرعي",
                         onPressed: () => _showAddSubcategoryDialog(category.id),
+                      ),
+                      IconButton(
+                        tooltip: "تحديث الصنف الرئيسي",
+                        icon: Icon(Icons.edit, color: Colors.blue),
+                        onPressed: () {
+                          _showEditCategoryDialog(category);
+                          setState(() {
+
+                          });();
+                        },
                       ),
                       IconButton(
                         icon: Icon(Icons.delete),
@@ -324,3 +463,5 @@ class _CategoryPageState extends State<CategoryPage> {
     );
   }
 }
+
+

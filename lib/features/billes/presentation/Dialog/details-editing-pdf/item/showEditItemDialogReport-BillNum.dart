@@ -7,7 +7,7 @@ import 'package:system/features/category/data/repositories/category_repository.d
 import 'package:system/features/report/data/model/report_model.dart';
 import 'package:uuid/uuid.dart';
 
-Future<void> showEditItemDialog2({
+Future<void> showEditItemDialogReportBillNum({
   required BuildContext context,
   required BillItem item,
   required int billId,   // 👈 أضف رقم الفاتورة هنا

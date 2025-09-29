@@ -38,7 +38,7 @@ ThemeData getThemeDataLight() =>
 // primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: ColorScheme.light(
-        background: AppColors.background,
+        background: AppColors.back,
         // onSurface: AppColors.back,
 
 // primary: AppColors.primary,
@@ -46,7 +46,7 @@ ThemeData getThemeDataLight() =>
         secondary: AppColors.secondary,
         surface: AppColors.surface,
         error: AppColors.error,
-        onPrimary: AppColors.surface,
+        onPrimary: AppColors.back,
         onSecondary: AppColors.textPrimary,
         onError: AppColors.surface,
         onBackground: AppColors.textPrimary,

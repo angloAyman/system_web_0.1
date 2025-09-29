@@ -35,10 +35,10 @@ class _UserBillingPageState extends State<UserBillingPage> {
     _searchController.addListener(_filterBills);
   }
 
-  void addBill(Bill bill, payment, report) async {
+  void addBill(Bill bill, payment, report, preport) async {
     try {
       // await _billRepository.addBill(bill);
-      await _billRepository.addBill(bill, payment, report);
+      await _billRepository.addBill(bill, payment, report, preport);
       refreshBills();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

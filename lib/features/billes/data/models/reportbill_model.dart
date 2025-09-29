@@ -1,7 +1,7 @@
 class ReportbillBill {
   final int bill_id;
   // final String userId;
-  final String userName; // User Name (added)
+  final String userName; // UserLayouts Name (added)
   final String customerName;
   final String date;
   final List<RBillItem> items;

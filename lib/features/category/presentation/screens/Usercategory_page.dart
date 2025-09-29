@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:system/Adminfeatures/category/data/models/subCategory_model.dart';
+import 'package:system/features/category/data/models/subCategory_model.dart';
 import '../../data/repositories/category_repository.dart';
 import '../../data/models/category_model.dart';
 
@@ -49,7 +49,7 @@ class _UserCategoryPageState extends State<UserCategoryPage> {
       String name,
       String unit,
       double pricePerUnit,
-      double discountPercentage,
+      String discountPercentage,
       ) async {
     try {
       await _categoryRepository.addSubcategory(categoryId, name, unit, pricePerUnit, discountPercentage);
@@ -137,7 +137,7 @@ class _UserCategoryPageState extends State<UserCategoryPage> {
                 final price = double.tryParse(priceText);
 
                 final discountPercentageText = _discountPercentageSubcategoryController.text;
-                final discountPercentage = double.tryParse(discountPercentageText);
+                final discountPercentage = discountPercentageText. toString();
 
                 if (price == null || price <= 0) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -145,7 +145,7 @@ class _UserCategoryPageState extends State<UserCategoryPage> {
                   );
                   return;
                 }
-                if (discountPercentage == null || discountPercentage <= 0) {
+                if (discountPercentage == "" ) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('الرجاء إدخال الخصم بطريقة صحيحة.')),
                   );

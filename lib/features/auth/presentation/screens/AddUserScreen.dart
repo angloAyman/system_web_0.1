@@ -14,7 +14,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
   String selectedRole = 'user'; // Default role is 'user'
   bool isLoading = false;
 
-  final roles = ['user', 'admin'];
+  final roles = ['user', 'admin','user2'];
 
   Future<void> addUser() async {
     setState(() {
@@ -39,7 +39,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User added successfully!')),
+          const SnackBar(content: Text('UserLayouts added successfully!')),
         );
         Navigator.pop(context);
       } else {

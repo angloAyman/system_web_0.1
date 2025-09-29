@@ -7,13 +7,14 @@ import 'package:system/features/billes/data/models/bill_model.dart';
 import 'package:system/features/billes/data/repositories/bill_repository.dart';
 import 'package:system/features/billes/presentation/Dialog/adding/bill/showAddBillDialog.dart';
 import 'package:system/features/billes/presentation/Dialog/details-editing-pdf/bill/showBillDetailsDialog.dart';
+import 'package:system/user2/features/bills/presentation/Dialogs/showAddBillDialog2.dart';
 
-class UserBillingPage extends StatefulWidget {
+class UserBillingPage2 extends StatefulWidget {
   @override
-  _UserBillingPageState createState() => _UserBillingPageState();
+  _UserBillingPage2State createState() => _UserBillingPage2State();
 }
 
-class _UserBillingPageState extends State<UserBillingPage> {
+class _UserBillingPage2State extends State<UserBillingPage2> {
   final BillRepository _billRepository = BillRepository();
   late Future<List<Bill>> _billsFuture;
   List<Bill> _bills = [];
@@ -25,7 +26,7 @@ class _UserBillingPageState extends State<UserBillingPage> {
   @override
   void initState() {
     super.initState();
-    _billsFuture = _billRepository.getBills();
+    _billsFuture = _billRepository.getNormalCustomerBills();
     _billsFuture.then((bills) {
       setState(() {
         _bills = bills;
@@ -35,10 +36,10 @@ class _UserBillingPageState extends State<UserBillingPage> {
     _searchController.addListener(_filterBills);
   }
 
-  void addBill(Bill bill, payment, report) async {
+  void addBill(Bill bill, payment, report, preport) async {
     try {
       // await _billRepository.addBill(bill);
-      await _billRepository.addBill(bill, payment, report);
+      await _billRepository.addBill(bill, payment, report, preport);
       refreshBills();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -49,7 +50,7 @@ class _UserBillingPageState extends State<UserBillingPage> {
 
   void refreshBills() {
     setState(() {
-      _billsFuture = _billRepository.getBills();
+      _billsFuture = _billRepository.getNormalCustomerBills();
       _billsFuture.then((bills) {
         setState(() {
           _bills = bills;
@@ -61,16 +62,13 @@ class _UserBillingPageState extends State<UserBillingPage> {
 
   void _filterBills() {
     final query = _searchController.text.toLowerCase();
-
     setState(() {
       _filteredBills = _bills.where((bill) {
         final matchesQuery = _searchCriteria == 'id'
             ? bill.id.toString().contains(query)
             : bill.customerName.toLowerCase().contains(query);
-
         final matchesStatus =
             _selectedStatus == null || bill.status == _selectedStatus;
-
         return matchesQuery && matchesStatus;
       }).toList();
     });
@@ -194,8 +192,7 @@ class _UserBillingPageState extends State<UserBillingPage> {
         actions: [
           TextButton.icon(
               onPressed: () {
-                Navigator.pushReplacementNamed(context,
-                    '/userMainScreen'); // توجيه المستخدم إلى صفحة تسجيل الدخول
+                Navigator.pushReplacementNamed(context,'/userMainScreen2'); // توجيه المستخدم إلى صفحة تسجيل الدخول
               },
               label: Icon(Icons.home)),
           IconButton(
@@ -233,8 +230,6 @@ class _UserBillingPageState extends State<UserBillingPage> {
                       : _selectedStatus == AppStrings.openInvoice
                           ? 2
                           : 3,
-              // ? 3
-
               onTap: _onNavBarItemTapped,
               items: const [
                 BottomNavigationBarItem(
@@ -373,14 +368,7 @@ class _UserBillingPageState extends State<UserBillingPage> {
                               : Colors.orange,
                         ),
                       ),
-                      // trailing:
-                      //  IconButton(
-                      //    icon: Icon(
-                      //      bill.isFavorite ? Icons.account_balance : Icons.account_balance_outlined,
-                      //      color: bill.isFavorite ? AppColors.primary : null,
-                      //    ),
-                      //    onPressed: () => _toggleFavoriteStatusAndUpdateDescription(bill),
-                      //  ),
+
                       trailing: IconButton(
                         icon: Icon(
                           bill.isFavorite
@@ -433,7 +421,7 @@ class _UserBillingPageState extends State<UserBillingPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showAddBillDialog(
+          showAddBillDialog2(
             context: context,
             onAddBill: addBill,
           );

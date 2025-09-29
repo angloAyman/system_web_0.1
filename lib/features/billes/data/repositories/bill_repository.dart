@@ -3,15 +3,11 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:supabase/supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
-import 'package:system/Adminfeatures/category/data/models/subCategory_model.dart';
-import 'package:system/Adminfeatures/customer/data/model/business_customer_model.dart';
-import 'package:system/Adminfeatures/customer/data/model/normal_customer_model.dart';
-import 'package:system/Adminfeatures/report/data/model/report_model.dart';
-
-import '../../../customer/data/model/customer_model.dart';
+import 'package:system/features/billes/data/models/bill_model.dart';
+import 'package:system/features/customer/data/model/business_customer_model.dart';
+import 'package:system/features/customer/data/model/normal_customer_model.dart';
+import 'package:system/features/report/data/model/report_model.dart';
 
 class BillRepository {
   final SupabaseClient _client = Supabase.instance.client;
@@ -21,9 +17,6 @@ class BillRepository {
   Future<List<String>> getNormalCustomerNames() async {
     try {
       final response = await _client.from('normal_customers').select('name');
-      if (response == null) {
-        throw Exception('Error fetching customer names');
-      }
       final List<dynamic> data = response;
       return data.map((customer) => customer['name'] as String).toList();
     } catch (e) {
@@ -35,9 +28,6 @@ class BillRepository {
   Future<List<String>> getBusinessCustomerNames() async {
     try {
       final response = await _client.from('business_customers').select('name');
-      if (response == null) {
-        throw Exception('Error fetching customer names');
-      }
       final List<dynamic> data = response;
       return data.map((customer) => customer['name'] as String).toList();
     } catch (e) {
@@ -46,71 +36,71 @@ class BillRepository {
   }
 
   // Add a new normal customer
-  Future<void> addCustomer(normal_customers customer) async {
-    final response = await _client.from('customers').insert({
-      'name': customer.name,
-      'email': customer.email,
-      'phone': customer.phone,
-      'address': customer.address,
-    }).select();
-
-    if (response == null || response.isEmpty) {
-      throw Exception('Failed to add customer');
-    }
+  Future<void> addCustomer(normal_customers normal_customers) async {
+    await _client.from('normal_customers').insert({
+      'name': normal_customers.name,
+      'email': normal_customers.email,
+      'phone': normal_customers.phone,
+      'phonecall': normal_customers.phonecall,
+      'address': normal_customers.address,
+    });
   }
 
   // Add a new business customer
-  Future<void> addBusinessCustomer(business_customers customer) async {
-    final response = await _client.from('business_customers').insert({
-      'name': customer.name,
-      'personName': customer.personName,
-      'email': customer.email,
-      'phone': customer.phone,
-      'personPhone': customer.personPhone,
-      'address': customer.address,
-      'discount': customer.discount,
-    }).select();
-
-    if (response == null || response.isEmpty) {
-      throw Exception('Failed to add business customer');
-    }
+  Future<void> addBusinessCustomer(
+      business_customers business_customers) async {
+    await _client.from('business_customers').insert({
+      'name': business_customers.name,
+      'personName': business_customers.personName,
+      'email': business_customers.email,
+      'phone': business_customers.phone,
+      'personPhone': business_customers.personPhone,
+      'personphonecall': business_customers.personphonecall,
+      'address': business_customers.address,
+      // 'discount': business_customers.discount,
+    });
   }
 
 // Vault
   // Fetch a list of vaults for the dropdown
   Future<List<Map<String, String>>> fetchVaultList() async {
-    final response = await _client.from('vaults').select('id, name');
-    if (response is List) {
-      return response.map((vault) {
-        return {
-          "id": vault['id'] as String,
-          "name": vault['name'] as String,
-        };
-      }).toList();
-    }
-    return [];
+    // final response = await _client.from('vaults').select('id, name');
+
+    final response = await _client
+        .from('vaults')
+        .select('id,name,isActive')
+        .eq('isActive', true); // ✅ شرط يجيب بس الـ Active
+
+
+    return response.map((vault) {
+      return {
+        "id": vault['id'] as String,
+        "name": vault['name'] as String,
+      };
+    }).toList();
   }
 
 // bill
   // Add a new bill along with payment and report
-  Future<void> addBill(Bill bill, Payment payment, Report report) async {
+  Future<void> addBill(Bill bill, Payment payment, Report report, Report preport,) async {
     try {
       // Insert bill into the 'bills' table
-      final billResponse = await _client.from('bills').insert({
-        'user_id': bill.userId,
-        'customer_name': bill.customerName,
-        'date': bill.date.toString(),
-        'status': bill.status,
-        'payment': bill.payment.toInt(),
-        'total_price': bill.total_price,
-        'vault_id': bill.vault_id,
-        'isFavorite': bill.isFavorite,
-        'description': bill.description,
-      }).select().single();
-
-      if (billResponse == null) {
-        throw Exception('Failed to add bill to repository');
-      }
+      final billResponse = await _client
+          .from('bills')
+          .insert({
+            'user_id': bill.userId,
+            'customer_name': bill.customerName,
+            'date': bill.date.toString(),
+            'status': bill.status,
+            'payment': bill.payment.toInt(),
+            'total_price': bill.total_price,
+            'vault_id': bill.vault_id,
+            'isFavorite': bill.isFavorite,
+            'description': bill.description,
+            'customer_type': bill.customer_type,
+          })
+          .select()
+          .single();
       final billId = billResponse['id'];
 
       // Insert bill items into the 'bill_items' table
@@ -124,12 +114,12 @@ class BillRepository {
           'quantity': item.quantity,
           'description': item.description,
           'discount': item.discount,
+          'total_Item_price': item.total_Item_price,
+          'discountType': item.discountType,
         };
       }).toList();
 
-      final itemResponse = await _client.from('bill_items')
-          .insert(items)
-          .select();
+      final itemResponse =await _client.from('bill_items').insert(items).select();
 
       if (itemResponse == null) {
         throw Exception('Failed to add bill items to repository');
@@ -142,6 +132,7 @@ class BillRepository {
         'user_id': payment.userId,
         'payment': payment.payment.toInt(),
         'payment_status': payment.payment_status,
+        'vault_id': payment.vault_id,
         'created_at': payment.createdAt.toIso8601String(),
       }).select();
 
@@ -149,18 +140,48 @@ class BillRepository {
         throw Exception('Failed to add payment record');
       }
 
-      // Add report for this action
+      // Add bill report for this action
       final reportResponse = await _client.from('reports').insert({
         'title': 'اضافة فاتورة',
         'user_name': report.user_name,
         'date': report.date.toIso8601String(),
-        'description': 'رقم الفاتورة : $billId - اسم العميل : ${bill
-            .customerName} - اجمالي الفاتورة : ${bill.total_price
-            .toStringAsFixed(2)}',
+        'description':
+            'رقم الفاتورة : $billId - اسم العميل : ${bill.customerName} - اجمالي الفاتورة : ${bill.total_price.toStringAsFixed(2)}',
       }).select();
 
+
+      // Add payment report for this action
+      final paymentreportResponse = await _client.from('reports').insert({
+        'title': 'ايداع',
+        'user_name': report.user_name,
+        'date': report.date.toIso8601String(),
+        'description':"فاتورة جديدة \n"
+        // 'رقم الفاتورة : $billId - اسم العميل : ${bill.customerName} - اجمالي الفاتورة : ${bill.total_price.toStringAsFixed(2)}',
+        'رقم الفاتورة : $billId - المبلغ المدفوع : ${payment.payment.toStringAsFixed(2)} - اجمالي الفاتورة : ${bill.total_price.toStringAsFixed(2)}',
+      }).select();
+
+
+
+      // 1. احصل على الرصيد الحالي للخزنة
+      final currentBalance = await _client
+          .from('vaults')
+          .select('balance')
+          .eq('id', bill.vault_id)
+          .single()
+          .then((response) => response['balance'] as int);
+
+      // 2. احسب الرصيد الجديد
+      final newBalance = currentBalance + payment.payment.toInt();
+
+      // 3. قم بالتحديث
+      await _client.from('vaults')
+          .update({'balance': newBalance}).eq('id', bill.vault_id);
+
       if (reportResponse == null) {
-        throw Exception('Failed to add report ($reportResponse)');
+        throw Exception('Failed to add bill report ($reportResponse)');
+      }
+      if (paymentreportResponse == null) {
+        throw Exception('Failed to add paymeny report ($paymentreportResponse)');
       }
     } catch (e) {
       print('Error adding bill: $e');
@@ -179,30 +200,55 @@ class BillRepository {
     return data.map((json) => Bill.fromJson(json)).toList();
   }
 
-  // Fetch deferred bills
-  Future<List<Bill>> getDeferredBills() async {
-    final response = await _client
-        .from('bills')
-        .select('*, bill_items(*)').eq(
-        'status', 'آجل');
-    if (response == null || response.isEmpty) {
-      throw Exception('Error fetching deferred bills');
-    }
+  Future<List<Bill>> getBillsByStatus(String status) async {
+    try {
+      // Build the query with the same structure as getBills()
+      final response = await _client
+          .from('bills')
+          .select('*, bill_items(*)')  // Same fields as getBills()
+          .eq('status', status);       // Add status filter
+          // .order('created_at', ascending: false) // Optional: add sorting
 
-    final data = response as List;
-    return data.map((json) => Bill.fromJson(json)).toList();
+      // Debugging output - consistent with getBills()
+      debugPrint('Bills by status ($status) response: ${response.toString()}');
+
+      // Error handling - consistent with getBills()
+      if (response == null) {
+        throw Exception('Null response received from server');
+      }
+
+      // Response processing - matches getBills() structure
+      if (response is List) {
+        if (response.isEmpty) {
+          debugPrint('No bills found with status: $status');
+          return [];
+        }
+        return response.map((json) => Bill.fromJson(json)).toList(); // Using fromJson like getBills()
+      } else {
+        throw Exception('Unexpected response format: ${response.runtimeType}');
+      }
+    } catch (e) {
+      debugPrint('Error in getBillsByStatus: $e');
+      throw Exception('Failed to fetch bills by status: ${e.toString()}');
+    }
   }
+
 
   // Update bill
   Future<void> updateBill(Bill updatedBill) async {
     try {
       // Update the bill in the 'bills' table
-      final billResponse = await _client.from('bills').update({
-        'customer_name': updatedBill.customerName,
-        'total_price': updatedBill.total_price,
-        'status': updatedBill.status,
-        'vault_id': updatedBill.vault_id,
-      }).eq('id', updatedBill.id).select().single();
+      final billResponse = await _client
+          .from('bills')
+          .update({
+            'customer_name': updatedBill.customerName,
+            'total_price': updatedBill.total_price,
+            'status': updatedBill.status,
+            'vault_id': updatedBill.vault_id,
+          })
+          .eq('id', updatedBill.id)
+          .select()
+          .single();
 
       if (billResponse == null) {
         throw Exception('Failed to update the bill');
@@ -221,13 +267,15 @@ class BillRepository {
           'price_per_unit': item.price_per_unit,
           'quantity': item.quantity,
           'description': item.description,
-          'discount':item.discount,
+          'discount': item.discount,
+          'total_Item_price': item.total_Item_price,
+          'discountType': item.discountType,
+
         };
       }).toList();
 
-      final itemResponse = await _client.from('bill_items')
-          .insert(newItems)
-          .select("*");
+      final itemResponse =
+          await _client.from('bill_items').insert(newItems).select("*");
       if (itemResponse == null) {
         throw Exception('Failed to update bill items');
       }
@@ -242,10 +290,7 @@ class BillRepository {
   // Upload PDF to Supabase storage
   Future<String> uploadPdfToSupabase(Uint8List pdfBytes) async {
     final storage = _client.storage.from('pdfs');
-    String fileName = DateTime
-        .now()
-        .millisecondsSinceEpoch
-        .toString() + '.pdf';
+    String fileName = DateTime.now().millisecondsSinceEpoch.toString() + '.pdf';
 
     try {
       final response = await storage.upload(fileName, pdfBytes as File);
@@ -258,16 +303,6 @@ class BillRepository {
       throw 'Error uploading PDF: $e';
     }
   }
-
-  // // Fetch bill by ID
-  // Future<Bill> getBillById(int billId) async {
-  //   final response = await _client.from('bills').select(
-  //       '*, bill_items(*), customers(*)').eq('id', billId).single();
-  //   if (response == null) {
-  //     throw Exception('Bill not found');
-  //   }
-  //   return Bill.fromJson(response);
-  // }
 
   Future<Bill> getBillById(int billId) async {
     final response = await Supabase.instance.client
@@ -283,13 +318,9 @@ class BillRepository {
     return Bill.fromMap(response); // Assuming you have a fromMap method
   }
 
-
-
   //  Remove a bill
   Future<void> removeBill(int billId) async {
-    final response = await _client.from('bills').delete()
-        .eq('id', billId)
-        .select();
+    final response = await _client.from('bills').delete().eq('id', billId).select();
 
     if (response == null) {
       throw Exception('Failed to remove bill');
@@ -309,9 +340,8 @@ class BillRepository {
       };
 
       // Assuming you have a Supabase client set up
-      final response = await Supabase.instance.client
-          .from('reports')
-          .insert(report);
+      final response =
+          await Supabase.instance.client.from('reports').insert(report);
 
       if (response == null) {
         throw Exception('Failed to upload report: ${response.error!.message}');
@@ -323,40 +353,117 @@ class BillRepository {
     }
   }
 
-
-
-
-  // Update favorite status and description
-  Future<void> updateFavoriteStatusAndDescription({
+  Future<void> addPayment({
     required int billId,
-    required bool isFavorite,
-    required String description,
+    required int amount,
+    required String userId,
+    required String paymentStatus,
+    String? vaultId,
   }) async {
-    final response = await _client
-        .from('bills')
-        .update({
-      'isFavorite': isFavorite, // Update the `isFavorite` column
-      'description': description, // Update the `description` column
-    })
-        .eq('id', billId) // Identify the row to update
-        ;
-
+    await _client.from('payment').insert({
+      'bill_id': billId,
+      'date': DateTime.now().toIso8601String(),
+      'user_id': userId,
+      'payment': amount,
+      'payment_status': paymentStatus,
+      'vault_id': vaultId,
+      'created_at': DateTime.now().toIso8601String(),
+    }).select();
   }
 
+  Future<void> updateVaultBalance(String vaultId, double amount) async {
+    try {
+      // 1. احصل على الرصيد الحالي للخزنة
+      final currentBalance = await _client
+          .from('vaults')
+          .select('balance')
+          .eq('id', vaultId)
+          .single()
+          .then((response) => response['balance']);
 
-  Future<void> removeFromFavorites(Bill bill) async {
-    final response = await _client
-        .from('bills')
-        .update({'isFavorite': false,'description':'تم التنفيذ'})
-        .eq('id', bill.id)
-    ;
-    print("removeFromFavorites");
-    print(response);
+      // 2. احسب الرصيد الجديد
+      final newBalance = currentBalance + amount;
 
-    if (response == null) {
-      throw Exception('Failed to remove favorite: ${response}');
+      // 3. قم بالتحديث
+      await _client.from('vaults')
+          .update({'balance': newBalance}).eq('id', vaultId);
+    } catch (e) {
+      throw Exception('Failed to update vault balance: $e');
     }
   }
+
+  Future<int> getTotalBillsCount() async {
+    final response = await _client.from('bills').select('*, bill_items(*)');
+    return response.length;
+  }
+
+  Future<int> getPaidBillsCount() async {
+    final response = await _client
+        .from('bills')
+        .select('*, bill_items(*)')
+        .eq('status', 'تم الدفع');
+    return response.length;
+  }
+
+  Future<int> getDeferredBillsCount() async {
+    final response = await _client
+        .from('bills')
+        .select('*, bill_items(*)')
+        .eq('status', 'آجل');
+    return response.length;
+  }
+
+  Future<int> getOpenBillsCount() async {
+    final response = await _client
+        .from('bills')
+        .select('*, bill_items(*)')
+        .eq('status', 'فاتورة مفتوحة');
+    return response.length;
+  }
+
+// for user2
+  // Fetch normal Costumer only bills
+  Future<List<Bill>> getNormalCustomerBills() async {
+    final response = await _client
+        .from('bills')
+        .select('*, bill_items(*)') // List the fields you want
+        .eq('customer_type', 'عميل عادي');
+    // .single() // Make sure to call .single() to get one result.
+
+    if (response == null) {
+      throw Exception('Failed to fetch bills');
+    }
+    final data = response as List;
+    return data
+        .map((json) => Bill.fromJson(json))
+        .toList(); // Assuming you have a fromMap method
+  }
+  // __________________________________________________________________________________________________________/
+  // // Update favorite status and description
+  // Future<void> updateFavoriteStatusAndDescription({
+  //   required int billId,
+  //   required bool isFavorite,
+  //   required String description,
+  // }) async {
+  //
+  // }
+  //
+  //
+  // Future<void> removeFromFavorites(Bill bill) async {
+  //   final response = await _client
+  //       .from('bills')
+  //       .update({'isFavorite': false,'description':'تم التنفيذ'})
+  //       .eq('id', bill.id)
+  //   ;
+  //   print("removeFromFavorites");
+  //   print(response);
+  //
+  //   if (response == null) {
+  //     throw Exception('Failed to remove favorite: ${response}');
+  //   }
+  // }
+
+//for favoreit bill
 
   Future<List<Bill>> getFavoriteBills() async {
     final response = await _client
@@ -364,9 +471,7 @@ class BillRepository {
         .select('*, bill_items(*)')
         .eq('isFavorite', true);
 
-
     final data = response as List;
-
 
     return data.map((json) => Bill.fromJson(json)).toList();
   }
@@ -381,29 +486,49 @@ class BillRepository {
     return data.map((json) => Bill.fromJson(json)).toList();
   }
 
+  // ✅ تحديث حالة المفضلة والوصف
+  Future<void> updateFavoriteStatusAndDescription({
+    required int billId,
+    required bool isFavorite,
+    required String description,
+  }) async {
+      final response = await _client.from('bills').update({
+        'isFavorite': isFavorite,
+        'description': description,
+      }).eq('id', billId);
 
+      // if (response == null) {
+      //   throw Exception('❌ فشل في التحديث: ${response}');
+      // }
 
+      print('✅ تم تحديث حالة المفضلة والوصف بنجاح');
+  }
 
+  // ✅ إزالة الفاتورة من المفضلة مع تحديث الوصف إلى "تم التنفيذ"
+  Future<void> removeFromFavorites(Bill bill) async {
 
-Future<int> getTotalBillsCount() async {
-  final response = await _client.from('bills').select('*, bill_items(*)');
-  return response.length;
+      final response = await _client.from('bills').update({
+        'isFavorite': false,
+        'description': 'تم التنفيذ',
+      }).eq('id', bill.id);
+
+      if (response == null) {
+        throw Exception('❌ فشل في الإزالة: ${response}');
+      }
+
+      print("✅ تم إزالة الفاتورة من المفضلة بنجاح");
+
+  }
+
+  Future<void> updatedescriptionbybillid(Bill bill, String description) async {
+
+    final response = await _client.from('bills').update({
+      'description': description,
+    }).eq('id', bill.id);
+
+    print("✅ تم تحديث الوصف بنجاح");
+
+  }
+
+// _________________________________________________________________________________________
 }
-
-Future<int> getPaidBillsCount() async {
-  final response = await _client.from('bills').select('*, bill_items(*)').eq(
-      'status', 'تم الدفع');
-  return response.length;
-}
-
-Future<int> getDeferredBillsCount() async {
-  final response = await _client.from('bills').select('*, bill_items(*)').eq(
-      'status', 'آجل');
-  return response.length;
-}
-
-Future<int> getOpenBillsCount() async {
-  final response = await _client.from('bills').select('*, bill_items(*)').eq(
-      'status', 'فاتورة مفتوحة');
-  return response.length;
-}}

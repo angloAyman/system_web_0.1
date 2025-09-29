@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'normal/normal_customer_page.dart';
-import 'business/business_customer_page.dart';
+import '../../../../features/customer/presentation/normal/normal_customer_page.dart';
+import '../../../../features/customer/presentation/business/business_customer_page.dart';
 
 class UserCustomerPage extends StatefulWidget {
   @override

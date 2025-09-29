@@ -1,7 +1,7 @@
 import 'package:supabase/supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:system/Adminfeatures/customer/data/model/business_customer_model.dart';
-import 'package:system/Adminfeatures/customer/data/model/customer_model.dart';
+import 'package:system/features/customer/data/model/business_customer_model.dart';
+
 
 class BusinessCustomerRepository {
   final SupabaseClient _client = Supabase.instance.client;
@@ -23,9 +23,9 @@ class BusinessCustomerRepository {
       'personPhone': business_customers.personPhone,
       'personphonecall': business_customers.personphonecall,
       'address': business_customers.address,
-      'discount': business_customers.discount,
     });
   }
+
 
   // Update customer
   Future<void> updateCustomer(business_customers business_customers) async {
@@ -37,7 +37,7 @@ class BusinessCustomerRepository {
       'phone': business_customers.phone,
       'personPhone': business_customers.personPhone,
       'address': business_customers.address,
-      'discount': business_customers.discount,
+      // 'discount': business_customers.discount,
     }).eq('id', business_customers.id);
   }
 

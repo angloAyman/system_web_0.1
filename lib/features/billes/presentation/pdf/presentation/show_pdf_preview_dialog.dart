@@ -1,12 +1,15 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:system/Adminfeatures/billes/data/models/bill_model.dart';
-import 'package:system/Adminfeatures/billes/presentation/pdf/services/pdf_storage_service.dart';
+import 'package:system/features/billes/data/models/bill_model.dart';
+import 'package:system/features/billes/presentation/pdf/services/pdf_storage_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../services/pdf_service.dart';
@@ -17,19 +20,20 @@ Future<void> showPdfPreviewDialog(BuildContext context, Bill bill) async {
 
   try {
     // 1. Generate the initial PDF document
-    final initialPdfDocument = await PdfService.createBillWithoutQrCode(bill);
-    final initialPdfBytes = await initialPdfDocument.save();
+    // final initialPdfDocument = await PdfService.createBillWithoutQrCode(bill);
+    // final initialPdfBytes = await initialPdfDocument.save();
 
     // 2. Upload the PDF to Supabase and get the public URL
-    final pdfUrl =
-        await pdfStorageService.uploadPdf(pdfFileName, initialPdfBytes);
+    // final pdfUrl =
+    //     await pdfStorageService.uploadPdf(pdfFileName, initialPdfBytes);
 
     // 3. Generate QR code data for the uploaded PDF URL
-    final qrCodeData = await pdfStorageService.generateQrCode(pdfUrl);
+    // final qrCodeData = await pdfStorageService.generateQrCode(pdfUrl);
+    final qrCodeData = await pdfStorageService.generateQrCode('${bill.id}');
 
     // 4. Generate the final PDF document with the QR code
-    final finalPdfDocument =
-        await PdfService.createBillWithQrCode(bill, pdfUrl, qrCodeData);
+    // final finalPdfDocument = // await PdfService.createBillWithQrCode(bill, pdfUrl, qrCodeData);
+    final finalPdfDocument =  await PdfService.createBillWithQrCode(bill, qrCodeData);
     final finalPdfBytes = await finalPdfDocument.save();
 
     // Future<String?> fetchCustomerPhoneNumber(String customerName) async {
@@ -78,28 +82,138 @@ Future<void> showPdfPreviewDialog(BuildContext context, Bill bill) async {
 
 
     // 5. Function to share the PDF URL via WhatsApp
-    Future<void> _shareToWhatsApp(
-        String senderPhone, String receiverPhone, String pdfUrl) async {
+    // Future<void> _shareToWhatsApp(
+    //     String senderPhone, String receiverPhone, String pdfUrl) async {
+    //   try {
+    //     final message = 'فاتورتك: $pdfUrl';
+    //     final encodedMessage = Uri.encodeComponent(message);
+    //     final whatsappUrl = 'https://wa.me/$receiverPhone?text=$encodedMessage';
+    //
+    //     if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
+    //       await launchUrl(Uri.parse(whatsappUrl));
+    //       print('WhatsApp launched successfully with message: $message');
+    //     } else {
+    //       throw 'Could not launch WhatsApp';
+    //     }
+    //   } catch (e) {
+    //     ScaffoldMessenger.of(context).showSnackBar(
+    //       SnackBar(content: Text('خطأ في مشاركة الفاتورة عبر واتساب: $e')),
+    //     );
+    //   }
+    // }
+
+
+
+    // Future<void> _shareToWhatsApp(String senderPhone, String receiverPhone, Uint8List finalPdfBytes) async {
+    //   try {
+    //     // Get the temporary directory
+    //     final directory = await getTemporaryDirectory();
+    //     final filePath = '${directory.path}/invoice.pdf';
+    //
+    //     // Save the generated PDF to a file
+    //     final file = File(filePath);
+    //     await file.writeAsBytes(finalPdfBytes);
+    //
+    //     // Create XFile instance for sharing
+    //     final xFile = XFile(filePath, mimeType: 'application/pdf');
+    //
+    //     // Share the PDF via WhatsApp
+    //     await Share.shareXFiles([xFile], text: 'فاتورتك من $senderPhone');
+    //   } catch (e) {
+    //     print('خطأ في مشاركة الفاتورة عبر واتساب: $e');
+    //   }
+    // }
+
+
+
+
+    // Future<void> _shareToWhatsApp(String senderPhone, String receiverPhone, Bill bill,) async {
+    //   try {
+    //     final qrCodeData = await pdfStorageService.generateQrCode('${bill.id}');
+    //
+    //     // Step 1: Generate the PDF
+    //     final finalPdfDocument = await PdfService.createBillWithQrCode(bill, qrCodeData);
+    //     final Uint8List finalPdfBytes = await finalPdfDocument.save();
+    //
+    //     // Step 2: Get the temporary directory
+    //     final directory = await getTemporaryDirectory();
+    //     final filePath = '${directory.path}/invoice.pdf';
+    //
+    //     // Step 3: Save the generated PDF to a file
+    //     final file = File(filePath);
+    //     await file.writeAsBytes(finalPdfBytes);
+    //
+    //     // Step 4: Create an XFile instance for sharing
+    //     final xFile = XFile(filePath, mimeType: 'application/pdf');
+    //
+    //     // Step 5: Share the PDF via WhatsApp
+    //     // Step 4: Share the PDF via WhatsApp with file path in subject
+    //     await Share.shareXFiles(
+    //       [xFile],
+    //         // [file.path], // Using the File instance directly
+    //         // text: '📄 فاتورتك من $senderPhone',
+    //         subject: '📄 فاتورتك من $senderPhone' // File path in subject
+    //     );
+    //
+    //
+    //     // final message = 'فاتورتك: $xFile';
+    //     //     final encodedMessage = Uri.encodeComponent(message);
+    //     //     final whatsappUrl = 'https://wa.me/$receiverPhone?text=$encodedMessage';
+    //     //
+    //     //     if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
+    //     //       await launchUrl(Uri.parse(whatsappUrl));
+    //     //       print('WhatsApp launched successfully with message: $message');
+    //     //     } else {
+    //     //       throw 'Could not launch WhatsApp';
+    //     //     }
+    //
+    //
+    //   } catch (e) {
+    //     print('⚠️ خطأ في مشاركة الفاتورة عبر واتساب: $e');
+    //   }
+    // }
+
+
+
+
+    Future<void> _shareToWhatsApp(String senderPhone, String receiverPhone, Bill bill) async {
       try {
-        final message = 'فاتورتك: $pdfUrl';
-        final encodedMessage = Uri.encodeComponent(message);
-        final whatsappUrl = 'https://wa.me/$receiverPhone?text=$encodedMessage';
+        final qrCodeData = await pdfStorageService.generateQrCode('${bill.id}');
+
+        // Step 1: Generate the PDF
+        final finalPdfDocument = await PdfService.createBillWithQrCode(bill, qrCodeData);
+        final Uint8List finalPdfBytes = await finalPdfDocument.save();
+
+        // Step 2: Get the temporary directory
+        final directory = await getTemporaryDirectory();
+        final filePath = '${directory.path}/invoice.pdf';
+
+        // Step 3: Save the generated PDF to a file
+        final file = File(filePath);
+        await file.writeAsBytes(finalPdfBytes);
+
+        // Step 4: Open WhatsApp Web with the number
+        final whatsappUrl = 'https://wa.me/$receiverPhone?text=📄 فاتورتك من $senderPhone';
 
         if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
           await launchUrl(Uri.parse(whatsappUrl));
-          print('WhatsApp launched successfully with message: $message');
         } else {
           throw 'Could not launch WhatsApp';
         }
+
+        // Step 5: Open the PDF manually (User has to upload it in WhatsApp manually)
+        Process.run('xdg-open', [filePath]); // For Linux
+        Process.run('open', [filePath]); // For macOS
+        Process.run('start', [filePath], runInShell: true); // For Windows
+
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ في مشاركة الفاتورة عبر واتساب: $e')),
-        );
+        print('⚠️ خطأ في مشاركة الفاتورة عبر واتساب: $e');
       }
     }
 
+
     // Function to display the input dialog
-    Future<void> _showPhoneNumberDialog() async {
+    Future<void> _showPhoneNumberDialog(Bill bill) async {
       final senderController = TextEditingController();
       final receiverPhoneController = TextEditingController();
 
@@ -152,7 +266,8 @@ Future<void> showPdfPreviewDialog(BuildContext context, Bill bill) async {
                   final senderPhone =  senderController.text.trim() ;
                   final receiverPhone = '+2' + receiverPhoneController.text.trim();
                   Navigator.of(context).pop();
-                  _shareToWhatsApp(senderPhone, receiverPhone, pdfUrl);
+                  _shareToWhatsApp(senderPhone, receiverPhone, bill);
+                  // _shareToWhatsApp(senderPhone, receiverPhone, pdfUrl);
                 },
                 child: Text('مشاركة'),
               ),
@@ -160,6 +275,7 @@ Future<void> showPdfPreviewDialog(BuildContext context, Bill bill) async {
           );
         },
       );
+      return;
     }
 
     // 6. Show the PDF preview dialog
@@ -204,7 +320,9 @@ Future<void> showPdfPreviewDialog(BuildContext context, Bill bill) async {
               child: Text('طباعة'),
             ),
             TextButton(
-              onPressed: _showPhoneNumberDialog,
+              onPressed: (){
+                _showPhoneNumberDialog(bill);
+              },
               child: Text('مشاركة عبر واتساب'),
             ),
           ],

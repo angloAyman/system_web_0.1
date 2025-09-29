@@ -8,7 +8,7 @@ import 'package:system/core/shared/responsive.dart';
 
 import '../../main.dart';
 
-class adminHomeResponsive extends StatelessWidget {
+class admindevHomeResponsive extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Responsive(

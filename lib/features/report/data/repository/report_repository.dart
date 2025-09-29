@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:system/Adminfeatures/report/data/model/report_model.dart';
+import 'package:system/features/report/data/model/report_model.dart';
 
 class ReportRepository {
   final SupabaseClient _client = Supabase.instance.client;
@@ -21,6 +21,7 @@ class ReportRepository {
   Future<void> addReport(Report report) async {
     final reportData = {
       'title': report.title,
+      // 'user_id': report.user_id,
       'user_name': report.user_name,
       'date': report.date.toIso8601String(),
       'description': report.description,
@@ -48,7 +49,7 @@ class ReportRepository {
     }
   }
 
-//Fetch User Data
+//Fetch UserLayouts Data
   Future<String?> getUserNameById(String user_name) async {
     final response = await Supabase.instance.client
         .from('users')
@@ -64,21 +65,24 @@ class ReportRepository {
     return response['name'] as String; // إرجاع اسم المستخدم
   }
 
-  // Method to get user_id from user_name
-  Future<String?> getUserIdByName(String userName) async {
+
+
+  Future<String?> getUserIdFromReport(String userId) async {
     try {
       final response = await Supabase.instance.client
           .from('reports')
-          .select('id')
-          .eq('user_name', userName)
-          .single();
-      print("response");
+          .select('user_name') // العمود اللي فيه الـ id
+          .eq('user_name', userId)
+          .maybeSingle();
 
-      return response['id'] as String?;
+      if (response == null) return null;
+
+      return response['user_name'] as String?;
     } catch (e) {
-      throw Exception('Error fetching user_id for $userName: $e');
+      throw Exception('Error fetching user_id for $userId: $e');
     }
   }
+
 
   Future<List<Map<String, dynamic>>> getItemUsageInBills(DateTime start, DateTime end) async {
     try {

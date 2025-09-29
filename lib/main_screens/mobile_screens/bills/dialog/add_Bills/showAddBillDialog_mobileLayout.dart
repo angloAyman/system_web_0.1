@@ -12,9 +12,11 @@ import 'package:system/features/customer/data/repository/business_customer_repos
 import 'package:system/features/customer/data/repository/normal_customer_repository.dart';
 import 'package:system/features/report/data/model/report_model.dart';
 
-Future<void> showAddBillDialog({
+import '../add_items/showAddItemDialog_mobileLayout.dart';
+
+Future<void> showAddBillDialogMobile({
   required BuildContext context,
-  required Function(Bill, Payment, Report) onAddBill,
+  required Function(Bill, Payment, Report, Report) onAddBill,
 }) async {
   final BusinessCustomerRepository _businesscustomerRepository = BusinessCustomerRepository();
   final NormalCustomerRepository _normalcustomerRepository = NormalCustomerRepository();
@@ -59,20 +61,9 @@ Future<void> showAddBillDialog({
   });
 
   double calculateTotalPrice({
-    // required double amount,
-    // required double pricePerUnit,
-    // required double quantity,
-    // required double discount,
     required double total_Item_price,
   }) {
-    // // Calculate the subtotal
-    // double subtotal = amount * pricePerUnit * quantity;
-    //
-    // // Calculate the discount amount
-    // double discountAmount = subtotal * (discount / 100);
-    //
-    // // Calculate the total price after applying the discount
-    // double totalPrice = subtotal - discountAmount;
+
     double totalPrice =total_Item_price;
 
     return totalPrice;
@@ -84,12 +75,9 @@ Future<void> showAddBillDialog({
   void addItemCallback(BillItem item) {
     items.add(item);
     // Update total price whenever a new item is added
-    _totalPrice = items.fold(0.0, (sum, item) {
+    _totalPrice = items.fold(0, (sum, item) {
       return sum +
           calculateTotalPrice(
-            // amount: item.amount,
-            // pricePerUnit: item.price_per_unit,
-            // quantity: item.quantity,
             total_Item_price: item.total_Item_price,
           );
     });
@@ -197,41 +185,44 @@ Future<void> showAddBillDialog({
         builder: (context, setDialogState) {
           return AlertDialog(
             title: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Add the toggle buttons for customer type
-                ToggleButtons(
-                  isSelected: [
-                    _selectedCustomerType == "عميل عادي",
-                    _selectedCustomerType == "عميل تجاري",
-                  ],
-                  onPressed: (index) {
-                    setDialogState(() {
-                      _selectedCustomerType =
-                          (index == 0) ? "عميل عادي" : "عميل تجاري";
-                    });
-                  },
-                  borderRadius: BorderRadius.circular(8),
-                  borderWidth: 2,
-                  selectedBorderColor: Colors.green,
-                  selectedColor: Colors.white,
-                  fillColor: Colors.green,
-                  borderColor: Colors.green,
-                  color: Colors.green,
-                  // color: Colors.black,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text("عميل عادي"),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text("عميل تجاري"),
-                    ),
-                  ],
+                Center(
+                  child: ToggleButtons(
+                    isSelected: [
+                      _selectedCustomerType == "عميل عادي",
+                      _selectedCustomerType == "عميل تجاري",
+                    ],
+                    onPressed: (index) {
+                      setDialogState(() {
+                        _selectedCustomerType =
+                            (index == 0) ? "عميل عادي" : "عميل تجاري";
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    borderWidth: 2,
+                    selectedBorderColor: Colors.green,
+                    selectedColor: Colors.white,
+                    fillColor: Colors.green,
+                    borderColor: Colors.green,
+                    color: Colors.green,
+                    // color: Colors.black,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text("عميل عادي"),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text("عميل تجاري"),
+                      ),
+                    ],
+                  ),
                 ),
-                SizedBox(height: 16), // Spacing below the toggle buttons
+                SizedBox(height: 8), // Spacing below the toggle buttons
                 Text(
-                  '------------------------------ انشاء فاتورة جديدة ------------------------------',
+                   'انشاء فاتورة جديدة ',
                   style: TextStyle(color: Colors.blue),
                 ),
               ],
@@ -261,10 +252,10 @@ Future<void> showAddBillDialog({
                       setDialogState: setDialogState,
                     ),
 
-                  SizedBox(height: 20),
+                  SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () {
-                      showAddItemDialog(
+                      showAddItemDialogMobile(
                         context: context,
                         onAddItem: (item) {
                           setDialogState(() {
@@ -280,197 +271,72 @@ Future<void> showAddBillDialog({
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                         )),
-                    Table(
-                      border: TableBorder.all(),
-                      columnWidths: {
-                        0: FlexColumnWidth(3),
-                        1: FlexColumnWidth(3),
-                        2: FlexColumnWidth(2),
-                        3: FlexColumnWidth(2),
-                        4: FlexColumnWidth(2),
-                        5: FlexColumnWidth(2),
-                        6: FlexColumnWidth(2),
-                        7: FlexColumnWidth(2),
-                        8: FlexColumnWidth(3), // العمود الجديد
-                      },
-                      children: [
-                        TableRow(
-                          children: [
-                            // 1- الفئة / الفئة الفرعية
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('الفئة / الفئة الفرعية',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        return Card(
+                          margin: EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
+                          child: ListTile(
+                            title: Text(
+                              '${item.categoryName} / ${item.subcategoryName}',
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
-                            // 2- الوصف
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('الوصف داخل الفاتورة',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                            ),
-                            // 3- سعر الوحدة
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('سعر الوحدة',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                            ),
-                            // 4- عدد الوحدات
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('عدد الوحدات',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                            ),
-
-                            // 5- سعر القطعة
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('السعر القطعة',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                            ),
-                            // 6- العدد
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('العدد',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                            ),
-                            // 7- نسبة الخصم
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('نسبة الخصم',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                            ),
-                            // 8- الإجمالي
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('السعر الإجمالي',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                            ),
-                            // 9- الإجراءات
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('الإجراءات',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                            ),
-                          ],
-                        ),
-                        ...items.map((item) {
-                          return TableRow(
-                            children: [
-                              // 1- الفئة / الفئة الفرعية
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                    '${item.categoryName} / ${item.subcategoryName}'),
-                              ),
-                              // 2- الوصف
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text('${item.description}'),
-                              ),
-                              // 3- سعر الوحدة
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text('${item.price_per_unit}'),
-                              ),
-                              // 4- عدد الوحدات
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text('${item.amount}'),
-                              ),
-
-                              // 5- سعر القطعة
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                    '\جنيه${(item.amount * item.price_per_unit)}'),
-                              ),
-                              // 6- العدد
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text('${item.quantity}'),
-                              ),
-                              // 7- سعر القطعة
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text('${item.discount}'),
-                              ),
-
-                              Padding(
-                                padding: const EdgeInsets.all(6.0),
-                                child:
-                                Text('${item.total_Item_price}'),
-                              ),
-
-                              // Padding(
-                              //   padding: const EdgeInsets.all(8.0),
-                              //   child: Text(
-                              //     calculateTotalPrice(
-                              //       amount: item.amount,
-                              //       pricePerUnit: item.price_per_unit,
-                              //       quantity: item.quantity,
-                              //       discount: item.discount,
-                              //     ).toString(),
-                              //     style: TextStyle(fontSize: 16.0),
-                              //   ),
-                              // ),
-
-                              //9- الإجراءات
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('الوصف: ${item.description}'),
+                                Text('سعر الوحدة: ${item.price_per_unit}'),
+                                Text('عدد الوحدات: ${item.amount}'),
+                                Text('السعر القطعة: \جنيه${(item.amount * item.price_per_unit)}'),
+                                Text('العدد: ${item.quantity}'),
+                                Text('نسبة الخصم: ${item.discount}'),
+                                Text('السعر الإجمالي: ${item.total_Item_price}'),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     IconButton(
-                                      icon:
-                                          Icon(Icons.edit, color: Colors.blue),
+                                      icon: Icon(Icons.edit, color: Colors.blue),
                                       onPressed: () {
                                         showEditItemDialog(
-                                            item: item,
-                                            context: context,
-                                            onUpdateItem: (updatedItem) {
-                                              setDialogState(() {
-                                                int index = items.indexWhere(
-                                                    (i) => i == item);
-                                                items[index] = updatedItem;
-                                              });
+                                          item: item,
+                                          context: context,
+                                          onUpdateItem: (updatedItem) {
+                                            setDialogState(() {
+                                              items[index] = updatedItem;
                                             });
-
-                                        // وظيفة التعديل
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                              content: Text('Edit clicked for ${item.categoryName}')),
+                                          },
+                                        );
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Edit clicked for ${item.categoryName}')),
                                         );
                                       },
                                     ),
                                     IconButton(
-                                      icon:
-                                          Icon(Icons.delete, color: Colors.red),
+                                      icon: Icon(Icons.delete, color: Colors.red),
                                       onPressed: () {
-                                        // وظيفة الحذف
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                              content: Text(
-                                                  'Delete clicked for ${item.categoryName}')),
+                                        setDialogState(() {
+                                          items.removeAt(index); // حذف العنصر من القائمة
+                                          // إعادة حساب الإجمالي
+                                          _totalPrice = items.fold(0.0, (sum, item) {
+                                            return sum + calculateTotalPrice(total_Item_price: item.total_Item_price);
+                                          });
+                                        });
+
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('تم حذف ${item.categoryName}')),
                                         );
                                       },
                                     ),
                                   ],
                                 ),
-                              ),
-                            ],
-                          );
-                        }).toList(),
-                      ],
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ],
                   Divider(),
@@ -478,9 +344,6 @@ Future<void> showAddBillDialog({
                     'الإجمالي: L.E ${items.fold(0.0, (sum, item) {
                       return sum +
                           calculateTotalPrice(
-                            // amount: item.amount,
-                            // pricePerUnit: item.price_per_unit,
-                            // quantity: item.quantity,
                             total_Item_price: item.total_Item_price,
                           );
                     })}',
@@ -545,124 +408,144 @@ Future<void> showAddBillDialog({
               ),
             ),
             actions: [
-              Row(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    icon: Row(
-                      children: [
-                        Icon(
-                          _getPaymentStatusIcon(),
-                          color: _getPaymentStatusColor(),
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          _selectedPaymentStatus,
-                          style: TextStyle(
-                            color: _getPaymentStatusColor(),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                  ElevatedButton.icon(
+                    icon: Icon(
+                      _getPaymentStatusIcon(),
+                      color: Colors.white,
+                      size: 20, // Increased from 8 to 20
+                    ),
+                    label: Text(
+                      _selectedPaymentStatus,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16, // Enhanced text size
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _getPaymentStatusColor(),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                     onPressed: () {
-                      final paymentAmount =
-                          double.tryParse(paymentController.text) ?? 0.0;
+                      final paymentAmount = double.tryParse(paymentController.text) ?? 0.0;
 
-                      if (_totalPrice == paymentAmount) {
-                        setDialogState(() {
+                      setDialogState(() {
+                        if (_totalPrice == paymentAmount) {
                           _selectedPaymentStatus = "تم الدفع";
-                        });
-                      } else if (_totalPrice < paymentAmount) {
-                        setDialogState(() {
+                        } else if (_totalPrice < paymentAmount) {
                           _selectedPaymentStatus = "فاتورة مفتوحة";
-                        });
-                      } else {
-                        setDialogState(() {
+                        } else {
                           _selectedPaymentStatus = "آجل";
-                        });
-                      }
+                        }
+                      });
                     },
                   ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text('الغاء'),
-                  ),
-                  TextButton(
-                    onPressed: customerExists
-                        ? () async {
-                            final user =
-                                Supabase.instance.client.auth.currentUser;
-                            if (user != null) {
-                              // Parse the date using custom parsing logic
-                              final parsedDate = dateController.text.isNotEmpty
-                                  ? _parseDate(dateController.text)
-                                  : null;
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(
+                          'الغاء',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: customerExists
+                            ? () async {
+                          final user = Supabase.instance.client.auth.currentUser;
+                          if (user != null) {
+                            final parsedDate = dateController.text.isNotEmpty
+                                ? _parseDate(dateController.text)
+                                : null;
 
-                              // Handle null date case
-                              if (parsedDate == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        'Invalid date format. Please use DD/MM/YYYY.'),
-                                  ),
-                                );
-                                return; // Exit early if the date is invalid
-                              }
-
-                              final bill = Bill(
-                                status: _selectedPaymentStatus,
-                                id: 0,
-                                userId: user.id,
-                                customerName: customerNameController.text,
-                                date: parsedDate,
-                                // Use parsed date
-                                items: items,
-                                payment: double.parse(paymentController.text),
-                                total_price: _totalPrice,
-                                vault_id: selectedVaultId!,
-                                customer_type: _selectedCustomerType ,
-                              );
-
-                              final payment = Payment(
-                                id: Supabase.instance.client.auth.currentUser!.id,
-                                billId: bill.id,
-                                date: DateTime.now(),
-                                userId: user.id,
-                                payment: bill.payment,
-                                vault_id: selectedVaultId!,
-                                payment_status: 'إيداع',
-                                createdAt: DateTime.now(),
-                              );
-
-                              final billreport = Report(
-                                id: Supabase
-                                    .instance.client.auth.currentUser!.id,
-                                title: "اضافة فاتورة",
-                                user_name: user.id,
-                                date: DateTime.now(),
-                                description:
-                                    'رقم الفاتورة: (${bill.id.toString()}) - اسم العميل : ${bill.customerName} - اجمالي الفاتورة: ${bill.total_price.toStringAsFixed(2)}',
-                                operationNumber: 0,
-                              );
-
-                              await onAddBill(bill, payment, billreport);
-                              final repository = BillRepository();
-                              Navigator.of(context).pop();
-                            } else {
+                            if (parsedDate == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content:
-                                      Text('Error: UserLayouts not authenticated'),
+                                  content: Text('Invalid date format. Please use DD/MM/YYYY.'),
                                 ),
                               );
+                              return;
                             }
+
+                            final bill = Bill(
+                              status: _selectedPaymentStatus,
+                              id: 0,
+                              userId: user.id,
+                              customerName: customerNameController.text,
+                              date: parsedDate,
+                              items: items,
+                              payment: double.parse(paymentController.text),
+                              total_price: _totalPrice,
+                              vault_id: selectedVaultId!,
+                              customer_type: _selectedCustomerType,
+                              isFavorite: false,
+                              description: 'جاري التنفيذ',
+                            );
+
+                            final payment = Payment(
+                              id: user.id,
+                              billId: bill.id,
+                              date: DateTime.now(),
+                              userId: user.id,
+                              payment: bill.payment,
+                              vault_id: selectedVaultId!,
+                              payment_status: 'إيداع',
+                              createdAt: DateTime.now(),
+                            );
+
+                            final currentUser = Supabase.instance.client.auth.currentUser!;
+                            final userData = await Supabase.instance.client
+                                .from('users')
+                                .select('name')
+                                .eq('id', currentUser.id)
+                                .maybeSingle();
+
+                            final billreport = Report(
+                              id: user.id,
+                              title: "اضافة فاتورة",
+                              user_name: userData?['name'] ?? "مجهول", // 👈 من جدول users                              date: DateTime.now(),
+                              description:
+                              'رقم الفاتورة: (${bill.id}) - اسم العميل : ${bill.customerName} - اجمالي الفاتورة: ${bill.total_price.toStringAsFixed(2)}',
+                              operationNumber: 0,
+                              date: DateTime.now(),
+                            );
+
+                            final paymentreport = Report(
+                              id: user.id,
+                              title: "ايداع",
+                              user_name: userData?['name'] ?? "مجهول", // 👈 من جدول users                              date: DateTime.now(),
+                              description:
+                              'رقم الفاتورة: (${bill.id}) - المبلغ المدفوع : $payment - اجمالي الفاتورة: ${bill.total_price.toStringAsFixed(2)}',
+                              operationNumber: 0,
+                              date: DateTime.now(),
+                            );
+
+                            await onAddBill(bill, payment, billreport, paymentreport);
+                            Navigator.of(context).pop();
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: User not authenticated')),
+                            );
                           }
-                        : null, // Disable button if customer doesn't exist
-                    child: Text('اضف الفاتورة'),
+                        }
+                            : null,
+                        child: Text(
+                          'اضف الفاتورة',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ],
+
           );
         },
       );

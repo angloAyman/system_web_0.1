@@ -1,30 +1,30 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:system/Adminfeatures/Vaults/data/repositories/supabase_vault_repository.dart';
-import 'package:system/Adminfeatures/Vaults/pdf/generatePaymentDetailsPdf.dart';
+import 'package:system/features/Vaults/data/repositories/supabase_vault_repository.dart';
+import 'package:system/features/Vaults/pdf/generatePaymentDetailsPdf.dart';
 
 class PaymentDetailsDialog extends StatelessWidget {
   final String vaultName;
+  final String vaultid;
 
-  PaymentDetailsDialog({Key? key, required this.vaultName}) : super(key: key);
+  PaymentDetailsDialog({Key? key, required this.vaultName, required this.vaultid}) : super(key: key);
 
   final SupabaseVaultRepository _vaultRepository = SupabaseVaultRepository();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('تفاصيل المدفعات بالخزنة (${vaultName})'),
+      title: Text('تفاصيل المصروفات خاصة بالخزنة (${vaultName})'),
 
-    // title: const Text('تفاصيل المدفعات'),
       content: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _vaultRepository.getPaymentsByVaultId(vaultName),
+        future: _vaultRepository.getPaymentsByVaultId(vaultid),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const CircularProgressIndicator();
           } else if (snapshot.hasError) {
             return Text('حدث خطأ: ${snapshot.error}');
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Text('لا توجد دفعات لهذه الخزنة.');
+            return const Text('لا توجد مصروفات لهذه الخزنة.');
           }
 
           final payments = snapshot.data!;
@@ -65,10 +65,6 @@ class PaymentDetailsDialog extends StatelessWidget {
         },
       ),
       actions: [
-        // TextButton(
-        //   onPressed: () => Navigator.of(context).pop(),
-        //   child: const Text('إغلاق'),
-        // ),
         ElevatedButton(
           onPressed: () async {
             final payments = await _vaultRepository.getPaymentsByVaultId(vaultName);

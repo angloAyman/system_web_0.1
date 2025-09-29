@@ -1,7 +1,7 @@
 // add_customer_dialog.dart
 import 'package:flutter/material.dart';
-import 'package:system/Adminfeatures/billes/data/repositories/bill_repository.dart';
-import 'package:system/Adminfeatures/customer/data/model/normal_customer_model.dart';
+import 'package:system/features/billes/data/repositories/bill_repository.dart';
+import 'package:system/features/customer/data/model/normal_customer_model.dart';
 
 Future<void> showAddNormalcustomerDialog(BuildContext context,
     {required Function onAdd}) async {
@@ -16,7 +16,7 @@ Future<void> showAddNormalcustomerDialog(BuildContext context,
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: Text('اضافة عميل'),
+        title: Text(' اضافة عميل'),
         content: Column(
           children: [
             TextField(
@@ -50,8 +50,8 @@ Future<void> showAddNormalcustomerDialog(BuildContext context,
                 _emailController.text,
                 _phoneController.text,
                 _addressController.text,
-                billRepository,
                 _phonecallController.text,
+                billRepository,
               );
               await onAdd();
 
@@ -65,8 +65,8 @@ Future<void> showAddNormalcustomerDialog(BuildContext context,
   );
 }
 
-void _addCustomer(String name, String email, String phone, String address,
-    BillRepository billRepository, String phonecall) async {
+void _addCustomer(String name, String email, String phone, String address, String phonecall,
+    BillRepository billRepository,) async {
   final newCustomer = normal_customers(
       id: '',
       name: name,

@@ -7,10 +7,11 @@ class Bill {
   final String status; // "تم الدفع" أو "آجل"
   late final double payment;
   late final double total_price;
-  final String vault_id; // New field
+  final String  vault_id; //
   final List<BillItem> items;
   bool isFavorite;
   String description; // "تم الدفع" أو "آجل"
+  String customer_type; // "تم الدفع" أو "آجل"
 
 
 
@@ -24,30 +25,11 @@ class Bill {
     required this.total_price,
     required this.items,
     required this.vault_id, // Initialize here
-    this.isFavorite = false, // Default to false
-    this.description = "جاري التنفيذ", // Default to false
+    required this.isFavorite , // Default to false
+    required this.description , // Default to false
+    required this.customer_type , // Default to false
 
   });
-
-  factory Bill.fromJson(Map<String, dynamic> json) {
-    var itemsFromJson = json['bill_items'] as List;
-    List<BillItem> itemsList = itemsFromJson.map((item) => BillItem.fromJson(item)).toList();
-
-    return Bill(
-      id: json['id'],
-      userId: json['user_id'],
-      status: json['status'],
-      customerName: json['customer_name'],
-      payment: (json['payment'] as num).toDouble(),
-      total_price: (json['total_price'] as num).toDouble(),
-      date:DateTime.parse(json['date']),
-      items: itemsList,
-      vault_id: json['vault_id'],
-      isFavorite: json['isFavorite'] ?? false,
-      description: json['description'] ?? "جاري التنفيذ",
-
-    );
-  }
 
   Map<String, dynamic> toJson() {
     List<Map<String, dynamic>> itemsList = items.map((item) => item.toJson()).toList();
@@ -63,6 +45,8 @@ class Bill {
       'items': itemsList,
       'vault_id': vault_id, // Include vault_id here
       'description': description, // Include vault_id here
+      'customer_type': customer_type, // Include vault_id here
+      'isFavorite': isFavorite, // Include vault_id here
     };
   }
 
@@ -79,8 +63,11 @@ class Bill {
       payment: (map['payment'] as num).toDouble(),
       total_price: (map['total_price'] as num).toDouble(),
       date:DateTime.parse(map['date']),
-      vault_id: map['vault_id'],
+      vault_id: map['vault_id']?.toString() ?? '', // يحول null إلى String فاضي
+      // vault_id: map['vault_id'],
       description: map['description'],
+      customer_type: map['customer_type'],
+      isFavorite: map['isFavorite'],
       items: itemsList,
     );
   }
@@ -99,7 +86,29 @@ class Bill {
       'total_price': total_price,
       'items': itemsList,
       'vault_id': vault_id, // Include vault_id here
+      'isFavorite': isFavorite, // Include isFavorite here
     };
+  }
+
+  factory Bill.fromJson(Map<String, dynamic> json) {
+    return Bill(
+      id: json['id'] as int,
+      status: json['status'] as String,
+      total_price: (json['total_price'] as num).toDouble(),
+      payment: (json['payment'] as num).toDouble(),
+      isFavorite: (json['isFavorite']) as bool,
+      description:json['description'] as String,
+      items: json['bill_items'] != null && json['bill_items'] is List
+          ? (json['bill_items'] as List<dynamic>)
+          .map((item) => BillItem.fromJson(item))
+          .toList()
+          : [], // ✅ إصلاح المشكلة بجعل `items` قائمة فارغة إذا لم تكن موجودة
+          userId: json['user_id'],
+          customerName: json['customer_name'],
+          date:DateTime.parse(json['date']),
+          vault_id: json['vault_id']?.toString() ?? '',
+          customer_type: json['customer_type'],
+    );
   }
 }
 
@@ -112,10 +121,12 @@ class BillItem {
   final String subcategoryName;
   late final double amount;
   late final double price_per_unit;
-  late final double discount;
+  late final int discount;
   // final double? discount; // Allow null or ensure a default value is provided
-  late final double quantity;
+  late final int quantity;
+  late final double total_Item_price;
   late final String description; // The new field for description
+  late final String discountType; // The new field for description
 
   BillItem({
     // required this.id, // Initialize ID for the item
@@ -124,9 +135,12 @@ class BillItem {
     required this.amount,
     required this.price_per_unit,
     // required this.discount,
-    this.discount = 0.0, // Default value for discount
+    this.discount = 0, // Default value for discount
     required this.quantity,
+    required this.total_Item_price,
     required this.description,
+    required this.discountType,
+
   });
 
   // Factory method to convert JSON to BillItem
@@ -138,10 +152,11 @@ class BillItem {
       amount: (json['amount'] as num).toDouble(),
       price_per_unit: (json['price_per_unit'] as num).toDouble(),
       // discount: (json['discount'] as num).toDouble(),
-      discount: (json['discount'] as num?)?.toDouble() ?? 0.0, // Handle null gracefully
-      // discount: json['discount'] ?? 0.0, // Handle null value
-      quantity: (json['quantity'] as num).toDouble(),
+      discount: (json['discount'] as num?)?.toInt() ?? 0, // Handle null gracefully
+      quantity: (json['quantity'] as num).toInt(),
+      total_Item_price: (json['total_Item_price'] as num).toDouble(),
       description: json['description'] ?? '',
+      discountType: json['discountType'] ?? '',
     );
   }
 
@@ -155,7 +170,9 @@ class BillItem {
       'price_per_unit': price_per_unit,
       'discount': discount,
       'quantity': quantity,
+      'total_Item_price': total_Item_price,
       'description': description, // Add description
+      'discountType': discountType, // Add description
     };
   }
 
@@ -167,9 +184,11 @@ class Payment {
   int billId;
   DateTime date;
   String userId;
+  String vault_id;
   double payment;
   String payment_status;
-  final PaymentDetails? paymentDetails; // Nullable payment details
+  final PaymentDetails? paymentDetails;
+
 
   Payment({
     required this.id,
@@ -177,6 +196,7 @@ class Payment {
     required this.billId,
     required this.date,
     required this.userId,
+    required this.vault_id,
     required this.payment,
     required this.payment_status,
     this.paymentDetails,
@@ -192,6 +212,7 @@ class Payment {
       userId: map['user_id'],
       payment: map['payment'],
       payment_status: map['payment_status'],
+      vault_id: map['vault_id'],
     );
   }
 
@@ -205,6 +226,7 @@ class Payment {
       'user_id': userId,
       'payment': payment,
       'payment_status': payment_status,
+      'vault_id': vault_id,
     };
   }
 }
